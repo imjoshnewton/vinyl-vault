@@ -267,6 +267,13 @@ export async function importFromDiscogsAction(): Promise<{
               continue;
             }
 
+            // Check if this is a vinyl record first
+            if (!discogsService.isVinylFormat(item)) {
+              // Skip non-vinyl formats (CDs, digital, etc.)
+              skipped++;
+              continue;
+            }
+
             // Map Discogs item to our record format
             const recordData = discogsService.mapDiscogsToVinylRecord(item, user.id);
             

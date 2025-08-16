@@ -299,6 +299,47 @@ class DiscogsService {
   }
 
   /**
+   * Check if a Discogs release is vinyl format
+   */
+  isVinylFormat(discogsItem: DiscogsCollectionItem | DiscogsRelease): boolean {
+    const basicInfo = "basic_information" in discogsItem 
+      ? discogsItem.basic_information 
+      : discogsItem;
+
+    if (!basicInfo || !basicInfo.formats) {
+      return false;
+    }
+
+    for (const format of basicInfo.formats) {
+      const formatName = format.name.toLowerCase();
+      const descriptions = format.descriptions?.join(" ").toLowerCase() || "";
+      
+      // Check if it's a vinyl format
+      if (formatName.includes("vinyl") || 
+          descriptions.includes("12\"") || 
+          descriptions.includes("7\"") || 
+          descriptions.includes("10\"") ||
+          descriptions.includes("lp") ||
+          descriptions.includes("single") ||
+          descriptions.includes("ep")) {
+        return true;
+      }
+      
+      // Skip CDs, Cassettes, Digital, etc.
+      if (formatName.includes("cd") ||
+          formatName.includes("cassette") ||
+          formatName.includes("digital") ||
+          formatName.includes("file") ||
+          formatName.includes("mp3")) {
+        return false;
+      }
+    }
+
+    // Default to false if format is unclear
+    return false;
+  }
+
+  /**
    * Map Discogs release to our vinyl record format
    */
   mapDiscogsToVinylRecord(
@@ -311,6 +352,11 @@ class DiscogsService {
 
     if (!basicInfo) {
       throw new Error("No basic information available for this release");
+    }
+
+    // Check if this is actually a vinyl record
+    if (!this.isVinylFormat(discogsItem)) {
+      throw new Error("This release is not a vinyl record");
     }
 
     // Extract artist names
