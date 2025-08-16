@@ -62,11 +62,11 @@ export default function PublicCollectionHeader({
         
         {/* Mobile owner controls */}
         {isOwner && (
-          <div className="sm:hidden mt-3 flex gap-2 overflow-x-auto">
-            <AddRecordDialog />
-            <DiscogsSearchDialog />
-            <DiscogsSyncDialog />
-            <ShareCollectionDialog user={collectionOwner} />
+          <div className="sm:hidden mt-3 flex gap-2 justify-center">
+            <AddRecordDialog iconOnly />
+            <DiscogsSearchDialog iconOnly />
+            <DiscogsSyncDialog iconOnly />
+            <ShareCollectionDialog user={collectionOwner} iconOnly />
           </div>
         )}
         

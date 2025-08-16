@@ -62,14 +62,14 @@ export default function MobileRecordCard({ record, isOwner = true }: MobileRecor
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
               onClick={handlePlay}
               className="gap-1 flex-1"
             >
               <Play className="w-3 h-3" />
               Play
             </Button>
-            <EditRecordDialog record={record} />
+            <EditRecordDialog record={record} className="flex-1" />
           </div>
         )}
       </CardContent>

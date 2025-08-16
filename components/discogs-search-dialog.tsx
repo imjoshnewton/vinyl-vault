@@ -25,7 +25,11 @@ interface SearchResult {
   thumb?: string;
 }
 
-export default function DiscogsSearchDialog() {
+interface DiscogsSearchDialogProps {
+  iconOnly?: boolean;
+}
+
+export default function DiscogsSearchDialog({ iconOnly = false }: DiscogsSearchDialogProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -87,9 +91,9 @@ export default function DiscogsSearchDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className={iconOnly ? "p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Search className="w-4 h-4" />
-          Search Discogs
+          {!iconOnly && "Search Discogs"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden">

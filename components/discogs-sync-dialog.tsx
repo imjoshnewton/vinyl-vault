@@ -22,7 +22,11 @@ import {
 } from "@/actions/discogs.actions";
 import { Input } from "@/components/ui/input";
 
-export default function DiscogsSyncDialog() {
+interface DiscogsSyncDialogProps {
+  iconOnly?: boolean;
+}
+
+export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialogProps) {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -185,9 +189,9 @@ export default function DiscogsSyncDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className={iconOnly ? "p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Disc3 className="w-4 h-4" />
-          Discogs Sync
+          {!iconOnly && "Discogs Sync"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

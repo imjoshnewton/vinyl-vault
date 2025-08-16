@@ -56,7 +56,11 @@ const recordSchema = z.object({
 
 type RecordFormData = z.infer<typeof recordSchema>;
 
-export default function AddRecordDialog() {
+interface AddRecordDialogProps {
+  iconOnly?: boolean;
+}
+
+export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,9 +100,9 @@ export default function AddRecordDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className={iconOnly ? "p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Plus className="w-4 h-4" />
-          Add Record
+          {!iconOnly && "Add Record"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">

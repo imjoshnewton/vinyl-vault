@@ -16,9 +16,10 @@ import type { User } from "@/server/db";
 
 interface ShareCollectionDialogProps {
   user: User;
+  iconOnly?: boolean;
 }
 
-export default function ShareCollectionDialog({ user }: ShareCollectionDialogProps) {
+export default function ShareCollectionDialog({ user, iconOnly = false }: ShareCollectionDialogProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   
@@ -45,9 +46,9 @@ export default function ShareCollectionDialog({ user }: ShareCollectionDialogPro
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className={iconOnly ? "p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Share2 className="w-4 h-4" />
-          Share Collection
+          {!iconOnly && "Share Collection"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

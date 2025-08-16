@@ -58,9 +58,10 @@ type RecordFormData = z.infer<typeof recordSchema>;
 
 interface EditRecordDialogProps {
   record: VinylRecord;
+  className?: string;
 }
 
-export default function EditRecordDialog({ record }: EditRecordDialogProps) {
+export default function EditRecordDialog({ record, className }: EditRecordDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -132,7 +133,7 @@ export default function EditRecordDialog({ record }: EditRecordDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1">
+        <Button variant="ghost" size="sm" className={`gap-1 ${className || ""}`}>
           <Edit className="w-3 h-3" />
           Edit
         </Button>
