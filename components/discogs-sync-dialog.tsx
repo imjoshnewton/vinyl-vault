@@ -14,11 +14,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Disc3, Download, ExternalLink, Loader2, CheckCircle, AlertCircle, Unlink } from "lucide-react";
 import { 
-  startDiscogsAuthAction, 
+  startDiscogsAuthAction,
+  completeDiscogsAuthWithPinAction,
   getDiscogsStatusAction, 
   importFromDiscogsAction,
   disconnectDiscogsAction 
 } from "@/actions/discogs.actions";
+import { Input } from "@/components/ui/input";
 
 export default function DiscogsSyncDialog() {
   const searchParams = useSearchParams();
@@ -34,6 +36,10 @@ export default function DiscogsSyncDialog() {
     skipped: number;
   } | null>(null);
   const [error, setError] = useState<string>();
+  const [showPinEntry, setShowPinEntry] = useState(false);
+  const [requestToken, setRequestToken] = useState<string>();
+  const [verifierPin, setVerifierPin] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Check for OAuth callback success
   useEffect(() => {
@@ -84,19 +90,50 @@ export default function DiscogsSyncDialog() {
   const handleConnect = async () => {
     setIsConnecting(true);
     setError(undefined);
+    setVerifierPin("");
     
     try {
       const result = await startDiscogsAuthAction();
-      if (result.success && result.authUrl) {
-        // Redirect to Discogs auth page
-        window.location.href = result.authUrl;
+      if (result.success && result.authUrl && result.token) {
+        // Open Discogs auth page in new tab
+        window.open(result.authUrl, '_blank', 'width=800,height=600');
+        
+        // Store request token and show PIN entry
+        setRequestToken(result.token);
+        setShowPinEntry(true);
       } else {
         setError(result.error || "Failed to start authentication");
-        setIsConnecting(false);
       }
     } catch {
       setError("Failed to connect to Discogs");
+    } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const handleVerifyPin = async () => {
+    if (!verifierPin.trim() || !requestToken) {
+      setError("Please enter the verification code");
+      return;
+    }
+
+    setIsVerifying(true);
+    setError(undefined);
+
+    try {
+      const result = await completeDiscogsAuthWithPinAction(requestToken, verifierPin.trim());
+      if (result.success) {
+        setShowPinEntry(false);
+        setVerifierPin("");
+        setRequestToken(undefined);
+        await loadStatus();
+      } else {
+        setError(result.error || "Failed to verify code");
+      }
+    } catch {
+      setError("Failed to complete authentication");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -208,9 +245,62 @@ export default function DiscogsSyncDialog() {
             </div>
           )}
 
+          {/* PIN Entry Section */}
+          {showPinEntry && !isConnected && (
+            <div className="space-y-3 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-blue-900">
+                  Enter Verification Code
+                </p>
+                <p className="text-xs text-blue-700">
+                  1. Authorize the app in the Discogs tab that just opened
+                </p>
+                <p className="text-xs text-blue-700">
+                  2. Copy the verification code shown on Discogs
+                </p>
+                <p className="text-xs text-blue-700">
+                  3. Paste it below and click Verify
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter verification code"
+                  value={verifierPin}
+                  onChange={(e) => setVerifierPin(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyPin()}
+                  disabled={isVerifying}
+                />
+                <Button 
+                  onClick={handleVerifyPin}
+                  disabled={isVerifying || !verifierPin.trim()}
+                  className="min-w-[100px]"
+                >
+                  {isVerifying ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Verify"
+                  )}
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowPinEntry(false);
+                  setVerifierPin("");
+                  setRequestToken(undefined);
+                }}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="space-y-2">
-            {!isConnected ? (
+            {!isConnected && !showPinEntry ? (
               <Button 
                 onClick={handleConnect} 
                 disabled={isConnecting}
@@ -223,7 +313,7 @@ export default function DiscogsSyncDialog() {
                 )}
                 Connect to Discogs
               </Button>
-            ) : (
+            ) : isConnected ? (
               <div className="space-y-2">
                 <Button 
                   onClick={handleImport} 
@@ -252,7 +342,7 @@ export default function DiscogsSyncDialog() {
                   Disconnect
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Info */}

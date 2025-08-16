@@ -17,6 +17,7 @@ import type { DiscogsCollectionItem } from "@/services/discogs.service";
 export async function startDiscogsAuthAction(): Promise<{
   success: boolean;
   authUrl?: string;
+  token?: string;
   error?: string;
 }> {
   try {
@@ -25,14 +26,13 @@ export async function startDiscogsAuthAction(): Promise<{
       return { success: false, error: "User not authenticated" };
     }
 
-    // Use the proper callback URL
-    const callbackUrl = `${env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/discogs/callback`;
-    const { token, tokenSecret, authUrl } = await discogsService.getRequestToken(callbackUrl);
+    // Get request token without callback for PIN-based flow
+    const { token, tokenSecret, authUrl } = await discogsService.getRequestToken();
     
     // Store the token secret for later use
     oauthStorage.store(token, tokenSecret);
     
-    return { success: true, authUrl };
+    return { success: true, authUrl, token };
   } catch (error) {
     console.error("Failed to start Discogs auth:", error);
     return { 
@@ -43,12 +43,11 @@ export async function startDiscogsAuthAction(): Promise<{
 }
 
 /**
- * Complete Discogs OAuth flow - exchange tokens
+ * Complete Discogs OAuth flow with PIN verification
  */
-export async function completeDiscogsAuthAction(
+export async function completeDiscogsAuthWithPinAction(
   requestToken: string,
-  requestTokenSecret: string,
-  verifier: string
+  verifierPin: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { userId } = await auth();
@@ -56,11 +55,17 @@ export async function completeDiscogsAuthAction(
       return { success: false, error: "User not authenticated" };
     }
 
-    // Exchange for access token
+    // Get the stored token secret
+    const tokenSecret = oauthStorage.get(requestToken);
+    if (!tokenSecret) {
+      return { success: false, error: "Request token expired. Please try connecting again." };
+    }
+
+    // Exchange for access token using the PIN
     const { accessToken, accessTokenSecret } = await discogsService.getAccessToken(
       requestToken,
-      requestTokenSecret,
-      verifier
+      tokenSecret,
+      verifierPin
     );
 
     // Get user info from Discogs
@@ -77,6 +82,9 @@ export async function completeDiscogsAuthAction(
         updatedAt: new Date(),
       })
       .where(eq(users.clerkId, userId));
+
+    // Clean up temporary storage
+    oauthStorage.remove(requestToken);
 
     revalidatePath("/collection");
     return { success: true };

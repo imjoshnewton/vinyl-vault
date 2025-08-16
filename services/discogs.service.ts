@@ -68,7 +68,7 @@ class DiscogsService {
   /**
    * Get OAuth request token to start the authentication flow
    */
-  async getRequestToken(callbackUrl: string): Promise<{ token: string; tokenSecret: string; authUrl: string }> {
+  async getRequestToken(): Promise<{ token: string; tokenSecret: string; authUrl: string }> {
     const requestTokenURL = "https://api.discogs.com/oauth/request_token";
     
     const requestData = {
@@ -93,7 +93,8 @@ class DiscogsService {
     const token = params.get("oauth_token")!;
     const tokenSecret = params.get("oauth_token_secret")!;
     
-    const authUrl = `https://www.discogs.com/oauth/authorize?oauth_token=${token}&oauth_callback=${encodeURIComponent(callbackUrl)}`;
+    // Don't include callback - use PIN-based flow
+    const authUrl = `https://www.discogs.com/oauth/authorize?oauth_token=${token}`;
     
     return { token, tokenSecret, authUrl };
   }
