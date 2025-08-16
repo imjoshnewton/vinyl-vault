@@ -112,6 +112,9 @@ class DiscogsService {
     const requestData = {
       url: accessTokenURL,
       method: "POST",
+      data: {
+        oauth_verifier: verifier
+      }
     };
 
     const token = {
@@ -119,23 +122,32 @@ class DiscogsService {
       secret: requestTokenSecret,
     };
 
+    const authHeader = this.oauth.toHeader(this.oauth.authorize(requestData, token));
+
     const response = await fetch(accessTokenURL, {
       method: "POST",
       headers: {
-        ...this.oauth.toHeader(this.oauth.authorize(requestData, token)),
+        ...authHeader,
         "User-Agent": "VinylVault/1.0",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `oauth_verifier=${verifier}`,
+      body: `oauth_verifier=${encodeURIComponent(verifier)}`,
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get access token: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Access token error response:', errorText);
+      throw new Error(`Failed to get access token: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const responseText = await response.text();
     const params = new URLSearchParams(responseText);
-    const accessToken = params.get("oauth_token")!;
-    const accessTokenSecret = params.get("oauth_token_secret")!;
+    const accessToken = params.get("oauth_token");
+    const accessTokenSecret = params.get("oauth_token_secret");
+    
+    if (!accessToken || !accessTokenSecret) {
+      throw new Error("Invalid response: missing tokens");
+    }
     
     return { accessToken, accessTokenSecret };
   }

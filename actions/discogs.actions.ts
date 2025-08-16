@@ -65,7 +65,7 @@ export async function completeDiscogsAuthWithPinAction(
     const { accessToken, accessTokenSecret } = await discogsService.getAccessToken(
       requestToken,
       tokenSecret,
-      verifierPin
+      verifierPin.trim()
     );
 
     // Get user info from Discogs
@@ -90,9 +90,24 @@ export async function completeDiscogsAuthWithPinAction(
     return { success: true };
   } catch (error) {
     console.error("Failed to complete Discogs auth:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to complete authentication";
+    
+    // Provide more helpful error messages
+    if (errorMessage.includes("Bad Request")) {
+      return { 
+        success: false, 
+        error: "Invalid verification code. Please check the code and try again." 
+      };
+    } else if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+      return { 
+        success: false, 
+        error: "Authentication failed. Please try connecting again." 
+      };
+    }
+    
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : "Failed to complete authentication" 
+      error: errorMessage
     };
   }
 }
