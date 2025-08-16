@@ -55,7 +55,11 @@ export default async function CollectionPage() {
         </div>
         
         <StatsCards stats={stats} />
-        <PublicCollectionView records={records} isOwner={true} />
+        <PublicCollectionView 
+          initialRecords={records} 
+          collectionOwner={user}
+          isOwner={true} 
+        />
       </main>
     </div>
   );
