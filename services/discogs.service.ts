@@ -312,7 +312,9 @@ class DiscogsService {
 
     for (const format of basicInfo.formats) {
       const formatName = format.name.toLowerCase();
-      const descriptions = format.descriptions?.join(" ").toLowerCase() || "";
+      const descriptions = ("descriptions" in format && format.descriptions) 
+        ? format.descriptions.join(" ").toLowerCase() 
+        : "";
       
       // Check if it's a vinyl format
       if (formatName.includes("vinyl") || 
