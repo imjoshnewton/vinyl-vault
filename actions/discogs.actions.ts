@@ -371,6 +371,10 @@ export async function searchDiscogsAction(query: string): Promise<{
 
     const searchResults = await discogsService.searchReleases(query, accessToken, accessTokenSecret);
     
+    // Debug logging
+    console.log('Search results sample:', searchResults.results?.[0]);
+    console.log('Using authenticated request:', !!accessToken);
+    
     return { 
       success: true, 
       results: searchResults.results.slice(0, 20) // Limit to first 20 results

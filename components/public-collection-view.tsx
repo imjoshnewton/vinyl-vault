@@ -30,27 +30,54 @@ export default function PublicCollectionView({
     <>
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "LP" | "Single" | "EP" | "All")} className="w-full">
         <Card>
-          <div className="p-4 border-b flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="All">
-                All Records ({initialRecords.length})
-              </TabsTrigger>
-              <TabsTrigger value="LP">
-                LPs ({initialRecords.filter(r => r.type === "LP").length})
-              </TabsTrigger>
-              <TabsTrigger value="Single">
-                Singles ({initialRecords.filter(r => r.type === "Single").length})
-              </TabsTrigger>
-            </TabsList>
-            
-            <Button 
-              onClick={() => setShowSpinModal(true)}
-              className="gap-2 bg-purple-600 hover:bg-purple-700"
-              disabled={initialRecords.length === 0}
-            >
-              <Shuffle className="w-4 h-4" />
-              Spin
-            </Button>
+          <div className="p-4 border-b">
+            {/* Desktop layout */}
+            <div className="hidden sm:flex items-center justify-between">
+              <TabsList>
+                <TabsTrigger value="All">
+                  All Records ({initialRecords.length})
+                </TabsTrigger>
+                <TabsTrigger value="LP">
+                  LPs ({initialRecords.filter(r => r.type === "LP").length})
+                </TabsTrigger>
+                <TabsTrigger value="Single">
+                  Singles ({initialRecords.filter(r => r.type === "Single").length})
+                </TabsTrigger>
+              </TabsList>
+              
+              <Button 
+                onClick={() => setShowSpinModal(true)}
+                className="gap-2 bg-purple-600 hover:bg-purple-700"
+                disabled={initialRecords.length === 0}
+              >
+                <Shuffle className="w-4 h-4" />
+                Spin
+              </Button>
+            </div>
+
+            {/* Mobile layout */}
+            <div className="sm:hidden space-y-3">
+              <TabsList className="w-full">
+                <TabsTrigger value="All" className="flex-1">
+                  All ({initialRecords.length})
+                </TabsTrigger>
+                <TabsTrigger value="LP" className="flex-1">
+                  LPs ({initialRecords.filter(r => r.type === "LP").length})
+                </TabsTrigger>
+                <TabsTrigger value="Single" className="flex-1">
+                  Singles ({initialRecords.filter(r => r.type === "Single").length})
+                </TabsTrigger>
+              </TabsList>
+              
+              <Button 
+                onClick={() => setShowSpinModal(true)}
+                className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
+                disabled={initialRecords.length === 0}
+              >
+                <Shuffle className="w-4 h-4" />
+                Spin the Wheel
+              </Button>
+            </div>
           </div>
           
           <TabsContent value={activeTab} className="mt-0">

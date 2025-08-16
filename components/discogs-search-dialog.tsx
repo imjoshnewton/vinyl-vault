@@ -139,15 +139,25 @@ export default function DiscogsSearchDialog() {
                 className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50"
               >
                 {/* Thumbnail */}
-                {result.thumb && (
-                  <Image
-                    src={result.thumb}
-                    alt={result.title}
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 rounded object-cover flex-shrink-0"
-                  />
-                )}
+                <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  {result.thumb ? (
+                    <Image
+                      src={result.thumb}
+                      alt={result.title}
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 rounded object-cover"
+                      onError={(e) => {
+                        console.log('Image failed to load:', result.thumb);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="text-gray-400 text-xs text-center">
+                      No Image
+                    </div>
+                  )}
+                </div>
                 
                 {/* Details */}
                 <div className="flex-1 min-w-0">
