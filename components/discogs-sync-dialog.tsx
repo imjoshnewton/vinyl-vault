@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +21,7 @@ import {
 } from "@/actions/discogs.actions";
 
 export default function DiscogsSyncDialog() {
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [discogsUsername, setDiscogsUsername] = useState<string>();
@@ -32,6 +34,30 @@ export default function DiscogsSyncDialog() {
     skipped: number;
   } | null>(null);
   const [error, setError] = useState<string>();
+
+  // Check for OAuth callback success
+  useEffect(() => {
+    const discogsParam = searchParams.get('discogs');
+    const errorParam = searchParams.get('error');
+    
+    if (discogsParam === 'connected') {
+      setOpen(true);
+      loadStatus();
+      // Clear the URL parameter
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (errorParam) {
+      setOpen(true);
+      if (errorParam === 'oauth-params-missing') {
+        setError('OAuth parameters missing. Please try connecting again.');
+      } else if (errorParam === 'oauth-token-expired') {
+        setError('OAuth token expired. Please try connecting again.');
+      } else if (errorParam === 'oauth-failed') {
+        setError('OAuth authentication failed. Please try again.');
+      }
+      // Clear the URL parameter
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [searchParams]);
 
   // Load connection status when dialog opens
   useEffect(() => {
