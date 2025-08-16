@@ -256,11 +256,12 @@ class DiscogsService {
     if (accessToken && accessTokenSecret) {
       return this.makeAuthenticatedRequest(url, accessToken, accessTokenSecret);
     } else {
-      // Public search without authentication
+      // Public search without authentication - still needs API key
       const response = await fetch(url, {
         headers: {
           "User-Agent": "VinylVault/1.0",
           "Accept": "application/vnd.discogs.v2.discogs+json",
+          "Authorization": `Discogs key=${env.DISCOGS_CLIENT_ID}, secret=${env.DISCOGS_CLIENT_SECRET}`,
         },
       });
 
