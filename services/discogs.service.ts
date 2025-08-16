@@ -58,9 +58,10 @@ class DiscogsService {
         key: env.DISCOGS_CLIENT_ID,
         secret: env.DISCOGS_CLIENT_SECRET,
       },
-      signature_method: "HMAC-SHA1",
+      signature_method: "PLAINTEXT",
       hash_function(base_string, key) {
-        return crypto.createHmac("sha1", key).update(base_string).digest("base64");
+        // For PLAINTEXT, signature is just consumer_secret&token_secret
+        return key;
       },
     });
   }
@@ -123,8 +124,12 @@ class DiscogsService {
       secret: requestTokenSecret,
     };
 
-    // Generate the OAuth authorization header with verifier included in signature
+    // Generate the OAuth authorization header
     const oauthData = this.oauth.authorize(requestData, token);
+    
+    // Add oauth_verifier to the OAuth data
+    oauthData.oauth_verifier = verifier;
+    
     const authHeader = this.oauth.toHeader(oauthData);
 
     const response = await fetch(accessTokenURL, {

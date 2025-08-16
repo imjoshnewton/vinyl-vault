@@ -341,7 +341,28 @@ export async function searchDiscogsAction(query: string): Promise<{
       return { success: false, error: "Search query must be at least 2 characters long" };
     }
 
-    const searchResults = await discogsService.searchReleases(query);
+    const { userId } = await auth();
+    let accessToken: string | undefined;
+    let accessTokenSecret: string | undefined;
+
+    // Try to get user's Discogs credentials for better search results with images
+    if (userId) {
+      const user = await db.query.users.findFirst({
+        where: eq(users.clerkId, userId),
+        columns: {
+          discogsAccessToken: true,
+          discogsTokenSecret: true,
+          discogsSyncEnabled: true,
+        },
+      });
+
+      if (user?.discogsSyncEnabled && user.discogsAccessToken && user.discogsTokenSecret) {
+        accessToken = user.discogsAccessToken;
+        accessTokenSecret = user.discogsTokenSecret;
+      }
+    }
+
+    const searchResults = await discogsService.searchReleases(query, accessToken, accessTokenSecret);
     
     return { 
       success: true, 
