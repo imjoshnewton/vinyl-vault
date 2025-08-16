@@ -58,6 +58,10 @@ export async function getStatsAction() {
   return recordsService.getStats();
 }
 
+export async function searchUserCollectionAction(query: string): Promise<VinylRecord[]> {
+  return recordsService.getUserRecords({ search: query });
+}
+
 export async function toggleWishlistAction(
   id: string,
   isWishlist: boolean

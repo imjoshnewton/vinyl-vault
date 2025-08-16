@@ -189,19 +189,10 @@ export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialo
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {iconOnly ? (
-          <div className="flex flex-col items-center gap-1">
-            <Button variant="outline" className="p-2" size="sm">
-              <Disc3 className="w-4 h-4" />
-            </Button>
-            <span className="text-xs text-muted-foreground">Sync</span>
-          </div>
-        ) : (
-          <Button variant="outline" className="gap-2">
-            <Disc3 className="w-4 h-4" />
-            Discogs Sync
-          </Button>
-        )}
+        <Button variant="outline" className={iconOnly ? "flex flex-col gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
+          <Disc3 className="w-4 h-4" />
+          <span className={iconOnly ? "text-xs" : ""}>{iconOnly ? "Sync" : "Discogs Sync"}</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
