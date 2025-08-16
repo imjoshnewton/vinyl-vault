@@ -100,10 +100,19 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={iconOnly ? "p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
-          <Plus className="w-4 h-4" />
-          {!iconOnly && "Add Record"}
-        </Button>
+        {iconOnly ? (
+          <div className="flex flex-col items-center gap-1">
+            <Button className="p-2" size="sm">
+              <Plus className="w-4 h-4" />
+            </Button>
+            <span className="text-xs text-muted-foreground">Add</span>
+          </div>
+        ) : (
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Record
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
