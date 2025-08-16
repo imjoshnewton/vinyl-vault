@@ -109,6 +109,7 @@ class DiscogsService {
   ): Promise<{ accessToken: string; accessTokenSecret: string }> {
     const accessTokenURL = "https://api.discogs.com/oauth/access_token";
     
+    // Create request data with oauth_verifier included for signature
     const requestData = {
       url: accessTokenURL,
       method: "POST",
@@ -122,7 +123,9 @@ class DiscogsService {
       secret: requestTokenSecret,
     };
 
-    const authHeader = this.oauth.toHeader(this.oauth.authorize(requestData, token));
+    // Generate the OAuth authorization header with verifier included in signature
+    const oauthData = this.oauth.authorize(requestData, token);
+    const authHeader = this.oauth.toHeader(oauthData);
 
     const response = await fetch(accessTokenURL, {
       method: "POST",
@@ -137,10 +140,14 @@ class DiscogsService {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Access token error response:', errorText);
+      console.error('Request headers:', authHeader);
+      console.error('Request body:', `oauth_verifier=${encodeURIComponent(verifier)}`);
       throw new Error(`Failed to get access token: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const responseText = await response.text();
+    console.log('Access token response:', responseText);
+    
     const params = new URLSearchParams(responseText);
     const accessToken = params.get("oauth_token");
     const accessTokenSecret = params.get("oauth_token_secret");
