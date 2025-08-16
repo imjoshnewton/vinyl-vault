@@ -128,7 +128,7 @@ class DiscogsService {
     const oauthData = this.oauth.authorize(requestData, token);
     
     // Add oauth_verifier to the OAuth data
-    oauthData.oauth_verifier = verifier;
+    (oauthData as any).oauth_verifier = verifier;
     
     const authHeader = this.oauth.toHeader(oauthData);
 
