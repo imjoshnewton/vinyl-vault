@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createRecordAction } from "@/actions/records.actions";
 import type { NewVinylRecord } from "@/server/db";
 
@@ -52,6 +53,7 @@ const recordSchema = z.object({
   ]),
   purchasePrice: z.string().optional(),
   notes: z.string().optional(),
+  isWishlist: z.boolean(),
 });
 
 type RecordFormData = z.infer<typeof recordSchema>;
@@ -75,6 +77,7 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
       catalogNumber: "",
       genre: "",
       notes: "",
+      isWishlist: false,
     },
   });
 
@@ -85,6 +88,7 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
         ...data,
         purchasePrice: data.purchasePrice ? Math.round(parseFloat(data.purchasePrice) * 100) : null, // Convert to cents
         releaseYear: data.releaseYear ? parseInt(data.releaseYear) : null,
+        isWishlist: data.isWishlist || false,
       };
       
       await createRecordAction(recordData);
@@ -100,9 +104,9 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={iconOnly ? "flex flex-col gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
+        <Button className={iconOnly ? "flex flex-row items-center gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Plus className="w-4 h-4" />
-          <span className={iconOnly ? "text-xs" : ""}>{iconOnly ? "Add" : "Add Record"}</span>
+          <span className={iconOnly ? "text-xs" : ""}>Add</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -288,6 +292,29 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
                     <Input placeholder="Additional notes..." {...field} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isWishlist"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Add to Wish List
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Mark this record as something you want to add to your collection in the future
+                    </p>
+                  </div>
                 </FormItem>
               )}
             />

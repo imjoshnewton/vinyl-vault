@@ -47,7 +47,7 @@ export default function PublicCollectionView({
               
               <Button 
                 onClick={() => setShowSpinModal(true)}
-                className="gap-2 bg-purple-600 hover:bg-purple-700"
+                className="gap-2 "
                 disabled={initialRecords.length === 0}
               >
                 <Shuffle className="w-4 h-4" />
@@ -71,7 +71,7 @@ export default function PublicCollectionView({
               
               <Button 
                 onClick={() => setShowSpinModal(true)}
-                className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
+                className="w-full gap-2 "
                 disabled={initialRecords.length === 0}
               >
                 <Shuffle className="w-4 h-4" />

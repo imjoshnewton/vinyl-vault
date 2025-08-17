@@ -84,7 +84,7 @@ export default function SpinModal({ open, onClose, recordType }: SpinModalProps)
                 }}
               >
                 <motion.div
-                  className="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center text-white text-4xl font-bold shadow-2xl relative"
+                  className="w-24 h-24 bg-primary rounded-xl flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-2xl relative"
                   animate={isSpinning ? {
                     rotateX: [0, 720],
                     rotateY: [0, 1080],
@@ -126,7 +126,7 @@ export default function SpinModal({ open, onClose, recordType }: SpinModalProps)
                 transition={{ type: "spring", duration: 0.5 }}
                 className="text-center"
               >
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center mb-4 mx-auto shadow-lg">
+                <div className="w-32 h-32 bg-secondary rounded-full flex items-center justify-center mb-4 mx-auto shadow-lg">
                   <div className="w-12 h-12 bg-white rounded-full" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">{selectedRecord.artist}</h3>
@@ -135,7 +135,7 @@ export default function SpinModal({ open, onClose, recordType }: SpinModalProps)
                   <p className="text-sm text-muted-foreground">Released: {selectedRecord.releaseYear}</p>
                 )}
                 <div className="mt-4">
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                  <span className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm font-medium">
                     {selectedRecord.type}
                   </span>
                 </div>
@@ -160,7 +160,7 @@ export default function SpinModal({ open, onClose, recordType }: SpinModalProps)
           <Button
             onClick={handleSpin}
             disabled={isSpinning}
-            className="flex-1 gap-2 bg-purple-600 hover:bg-purple-700"
+            className="flex-1 gap-2"
           >
             <Shuffle className="w-4 h-4" />
             {isSpinning ? "Spinning..." : selectedRecord ? "Spin Again" : "Spin"}

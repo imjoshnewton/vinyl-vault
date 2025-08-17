@@ -25,7 +25,7 @@ export default function PublicCollectionHeader({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <Link href="/" className="flex items-center gap-2">
-              <Disc3 className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
+              <Disc3 className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
               <span className="text-lg sm:text-xl font-bold truncate">Vinyl Vault</span>
             </Link>
           </div>

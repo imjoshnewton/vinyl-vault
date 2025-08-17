@@ -46,9 +46,9 @@ export default function ShareCollectionDialog({ user, iconOnly = false }: ShareC
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className={iconOnly ? "flex flex-col gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
+        <Button variant="outline" className={iconOnly ? "flex flex-row items-center gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Share2 className="w-4 h-4" />
-          <span className={iconOnly ? "text-xs" : ""}>{iconOnly ? "Share" : "Share Collection"}</span>
+          <span className={iconOnly ? "text-xs" : ""}>Share</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

@@ -190,7 +190,7 @@ export async function getDiscogsStatusAction(): Promise<{
 /**
  * Import records from Discogs collection
  */
-export async function importFromDiscogsAction(): Promise<{
+export async function importFromDiscogsAction(importAsWishlist: boolean = false): Promise<{
   success: boolean;
   imported: number;
   skipped: number;
@@ -275,7 +275,13 @@ export async function importFromDiscogsAction(): Promise<{
             }
 
             // Map Discogs item to our record format
-            const recordData = discogsService.mapDiscogsToVinylRecord(item, user.id);
+            const baseRecordData = discogsService.mapDiscogsToVinylRecord(item, user.id);
+            
+            // Add wishlist flag if importing as wishlist
+            const recordData = {
+              ...baseRecordData,
+              isWishlist: importAsWishlist
+            };
             
             // Create the record
             await recordsService.createRecord(recordData);

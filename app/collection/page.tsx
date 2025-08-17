@@ -1,10 +1,14 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { authService } from "@/services/auth.service";
-import { getPublicCollectionAction, getPublicStatsAction } from "@/actions/public.actions";
-import PublicCollectionView from "@/components/public-collection-view";
-import PublicCollectionHeader from "@/components/public-collection-header";
-import StatsCards from "@/components/stats-cards";
+import { getPublicCollectionAction } from "@/actions/public.actions";
+import CollectionView from "@/components/collection-view";
+import AddRecordDialog from "@/components/add-record-dialog";
+import ShareCollectionDialog from "@/components/share-collection-dialog";
+import DiscogsSyncDialog from "@/components/discogs-sync-dialog";
+import DiscogsSearchDialog from "@/components/discogs-search-dialog";
+import Footer from "@/components/footer";
+import BackToTop from "@/components/back-to-top";
 
 export default async function CollectionPage() {
   // Get current user from Clerk
@@ -28,39 +32,38 @@ export default async function CollectionPage() {
   
   // Get collection data for the current user
   const collectionData = await getPublicCollectionAction(user.username);
-  const statsData = await getPublicStatsAction(user.username);
   
-  if (!collectionData || !statsData) {
+  if (!collectionData) {
     // This shouldn't happen for the user's own collection
     redirect("/setup-profile");
   }
   
   const { records } = collectionData;
-  const { stats } = statsData;
 
+  // Get first name from Clerk user (more reliable) or fall back to database user name
+  const userFirstName = (clerkUser.firstName && clerkUser.firstName.trim()) || 
+                        (user.name && user.name.split(' ')[0]) || 
+                        null;
+  
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PublicCollectionHeader 
-        collectionOwner={user}
-        isOwner={true}
-      />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">
-            My Vinyl Collection
+    <div className="min-h-screen bg-stone-50 flex flex-col">
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-4">
+            {userFirstName ? `${userFirstName}'s` : "My"} Vinyl Collection
           </h1>
-          <p className="text-muted-foreground">
-            Manage and share your vinyl records
-          </p>
+          <div className="flex justify-center gap-3 mb-6">
+            <DiscogsSearchDialog />
+            <DiscogsSyncDialog />
+            <ShareCollectionDialog user={user} />
+            <AddRecordDialog />
+          </div>
         </div>
         
-        <StatsCards stats={stats} />
-        <PublicCollectionView 
-          initialRecords={records} 
-          collectionOwner={user}
-          isOwner={true} 
-        />
+        <CollectionView initialRecords={records} />
       </main>
+      <Footer />
+      <BackToTop />
     </div>
   );
 }

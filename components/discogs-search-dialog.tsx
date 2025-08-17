@@ -100,16 +100,16 @@ export default function DiscogsSearchDialog({ iconOnly = false }: DiscogsSearchD
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className={iconOnly ? "flex flex-col gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
+        <Button variant="outline" className={iconOnly ? "flex flex-row items-center gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Search className="w-4 h-4" />
-          <span className={iconOnly ? "text-xs" : ""}>{iconOnly ? "Search" : "Search Discogs"}</span>
+          <span className={iconOnly ? "text-xs" : ""}>Search</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Search className="w-5 h-5" />
-            Search Discogs Database
+            Search Records
           </DialogTitle>
         </DialogHeader>
         
@@ -219,10 +219,10 @@ export default function DiscogsSearchDialog({ iconOnly = false }: DiscogsSearchD
                   {results.map((result) => (
                     <div
                       key={result.id}
-                      className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50"
+                      className="flex items-start gap-3 p-3 border rounded-lg hover:bg-stone-50"
                     >
                       {/* Thumbnail */}
-                      <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <div className="w-16 h-16 rounded bg-stone-100 flex items-center justify-center flex-shrink-0">
                         {result.thumb ? (
                           <Image
                             src={result.thumb}

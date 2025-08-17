@@ -21,6 +21,7 @@ import {
   disconnectDiscogsAction 
 } from "@/actions/discogs.actions";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DiscogsSyncDialogProps {
   iconOnly?: boolean;
@@ -44,6 +45,7 @@ export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialo
   const [requestToken, setRequestToken] = useState<string>();
   const [verifierPin, setVerifierPin] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [importAsWishlist, setImportAsWishlist] = useState(false);
 
   // Check for OAuth callback success
   useEffect(() => {
@@ -168,7 +170,7 @@ export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialo
     setImportResult(null);
     
     try {
-      const result = await importFromDiscogsAction();
+      const result = await importFromDiscogsAction(importAsWishlist);
       if (result.success) {
         setImportResult({
           imported: result.imported,
@@ -183,15 +185,16 @@ export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialo
       setError("Failed to import from Discogs");
     } finally {
       setIsImporting(false);
+      setImportAsWishlist(false); // Reset after import
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className={iconOnly ? "flex flex-col gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
+        <Button variant="outline" className={iconOnly ? "flex flex-row items-center gap-1 h-auto p-2" : "gap-2"} size={iconOnly ? "sm" : "default"}>
           <Disc3 className="w-4 h-4" />
-          <span className={iconOnly ? "text-xs" : ""}>{iconOnly ? "Sync" : "Discogs Sync"}</span>
+          <span className={iconOnly ? "text-xs" : ""}>Sync</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -318,7 +321,21 @@ export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialo
                 Connect to Discogs
               </Button>
             ) : isConnected ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 p-3 bg-stone-50 rounded-lg">
+                  <Checkbox
+                    id="import-wishlist"
+                    checked={importAsWishlist}
+                    onCheckedChange={(checked) => setImportAsWishlist(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="import-wishlist"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Import as Wish List items
+                  </label>
+                </div>
+                
                 <Button 
                   onClick={handleImport} 
                   disabled={isImporting}
@@ -329,7 +346,7 @@ export default function DiscogsSyncDialog({ iconOnly = false }: DiscogsSyncDialo
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {isImporting ? "Importing..." : "Import Collection"}
+                  {isImporting ? "Importing..." : importAsWishlist ? "Import to Wish List" : "Import Collection"}
                 </Button>
                 
                 <Button 

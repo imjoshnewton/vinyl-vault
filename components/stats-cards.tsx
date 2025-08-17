@@ -18,8 +18,8 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Disc3 className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+              <Disc3 className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Records</p>
@@ -32,8 +32,8 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Music className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+              <Music className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">LPs</p>
@@ -46,8 +46,8 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <PlayCircle className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+              <PlayCircle className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Plays</p>
@@ -60,8 +60,8 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-red-600" />
+            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+              <Heart className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Wishlist</p>

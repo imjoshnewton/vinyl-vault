@@ -27,7 +27,7 @@ export default function MobileRecordCard({ record, isOwner = true }: MobileRecor
             <p className="text-muted-foreground truncate">{record.title}</p>
           </div>
           <div className="flex items-center gap-1 ml-2">
-            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+            <span className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-xs font-medium">
               {record.type}
             </span>
           </div>

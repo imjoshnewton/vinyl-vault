@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { getPublicCollectionAction, getPublicStatsAction } from "@/actions/public.actions";
 import { usersRepository } from "@/data/users.repository";
-import PublicCollectionView from "@/components/public-collection-view";
-import PublicCollectionHeader from "@/components/public-collection-header";
-import StatsCards from "@/components/stats-cards";
+import CollectionView from "@/components/collection-view";
+import Footer from "@/components/footer";
+import BackToTop from "@/components/back-to-top";
+import CollectionSearchDialog from "@/components/collection-search-dialog";
 
 interface PublicCollectionPageProps {
   params: Promise<{ username: string }>;
@@ -32,34 +33,28 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
   }
   
   const { user: collectionOwner, records } = collectionData;
-  const { stats } = statsData;
+  
+  // Get first name for display
+  const ownerFirstName = collectionOwner.name?.split(' ')[0] || collectionOwner.username;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PublicCollectionHeader 
-        collectionOwner={collectionOwner}
-        isOwner={isOwner}
-      />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">
-            {collectionOwner.name || collectionOwner.username}&apos;s Vinyl Collection
+    <div className="min-h-screen bg-stone-50 flex flex-col">
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-4">
+            {ownerFirstName}&apos;s Vinyl Collection
           </h1>
-          <p className="text-muted-foreground">
-            Discover their music collection
-          </p>
+          <div className="flex justify-center gap-3 mb-6">
+            <CollectionSearchDialog records={records} />
+          </div>
         </div>
         
-        <StatsCards stats={stats} />
-        
         <Suspense fallback={<div>Loading collection...</div>}>
-          <PublicCollectionView 
-            initialRecords={records}
-            collectionOwner={collectionOwner}
-            isOwner={isOwner}
-          />
+          <CollectionView initialRecords={records} isOwner={isOwner} />
         </Suspense>
       </main>
+      <Footer />
+      <BackToTop />
     </div>
   );
 }
