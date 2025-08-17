@@ -38,7 +38,7 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
   const ownerFirstName = collectionOwner.name?.split(' ')[0] || collectionOwner.username;
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col">
+    <div className="min-h-screen bg-stone-100 flex flex-col">
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-4">

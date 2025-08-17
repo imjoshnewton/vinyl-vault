@@ -46,7 +46,7 @@ export default async function CollectionPage() {
                         null;
   
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col">
+    <div className="min-h-screen bg-stone-100 flex flex-col">
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-4">
