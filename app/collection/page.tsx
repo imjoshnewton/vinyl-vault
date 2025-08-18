@@ -60,7 +60,7 @@ export default async function CollectionPage() {
           </div>
         </div>
         
-        <CollectionView initialRecords={records} />
+        <CollectionView initialRecords={records} username={user.username || ""} />
       </main>
       <Footer />
       <BackToTop />

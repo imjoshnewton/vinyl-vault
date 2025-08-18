@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { 
-  Play, 
-  Pause, 
-  SkipForward, 
+  Shuffle, 
+  RotateCcw,
   Volume2, 
   Heart, 
   MessageCircle,
@@ -21,12 +20,14 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ListeningLogDialog from "@/components/listening-log-dialog";
+import { setNowSpinningAction, clearNowSpinningAction, requestNextRecordAction } from "@/actions/now-spinning.actions";
 import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningKioskProps {
   record: VinylRecord;
   onClose?: () => void;
-  onNext?: () => void;
+  onShuffle?: () => void;
+  allRecords?: VinylRecord[];
   isOwner?: boolean;
   ownerName?: string;
 }
@@ -34,11 +35,12 @@ interface NowSpinningKioskProps {
 export default function NowSpinningKiosk({ 
   record, 
   onClose, 
-  onNext,
+  onShuffle,
+  allRecords = [],
   isOwner = false,
   ownerName = "Collection Owner"
 }: NowSpinningKioskProps) {
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isSpinning, setIsSpinning] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showListeningLog, setShowListeningLog] = useState(false);
@@ -76,6 +78,44 @@ export default function NowSpinningKiosk({
     setGuestName("");
     setGuestComment("");
     setShowComments(false);
+  };
+
+  const handlePickRandomRecord = () => {
+    if (allRecords.length === 0) return;
+    
+    // Filter out the current record and pick a random one
+    const otherRecords = allRecords.filter(r => r.id !== record.id);
+    if (otherRecords.length === 0) return;
+    
+    const randomRecord = otherRecords[Math.floor(Math.random() * otherRecords.length)];
+    onShuffle?.();
+  };
+
+  const handleMarkAsNowSpinning = async () => {
+    const result = await setNowSpinningAction(record.id);
+    if (!result.success) {
+      console.error("Failed to mark as now spinning:", result.error);
+    }
+  };
+
+  const handleStopSpinning = async () => {
+    const result = await clearNowSpinningAction();
+    if (!result.success) {
+      console.error("Failed to stop spinning:", result.error);
+    }
+  };
+
+  const handleRequestNext = async () => {
+    if (!guestName) return;
+    
+    const result = await requestNextRecordAction(ownerName, record.id, guestName);
+    if (result.success) {
+      setGuestName("");
+      // Show success feedback
+      alert("Request sent to " + ownerName + "!");
+    } else {
+      console.error("Failed to request next record:", result.error);
+    }
   };
 
   // Use cover image if available, fallback to thumbnail
@@ -126,10 +166,12 @@ export default function NowSpinningKiosk({
                 </div>
               )}
               
-              {/* Spinning overlay for vinyl effect */}
-              {isPlaying && (
+              {/* Vinyl spinning overlay */}
+              {isSpinning && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-32 h-32 rounded-full border-8 border-stone-900/50 animate-spin-slow" />
+                  <div className="w-32 h-32 rounded-full border-8 border-stone-900/50 animate-spin" 
+                       style={{ animationDuration: '3s' }} />
+                  <div className="absolute w-4 h-4 bg-stone-900 rounded-full" />
                 </div>
               )}
             </div>
@@ -172,30 +214,69 @@ export default function NowSpinningKiosk({
             </Badge>
           </div>
           
-          {/* Play Controls */}
-          <div className="flex items-center gap-4 pt-4">
+          {/* Vinyl Controls */}
+          <div className="flex flex-wrap items-center gap-3 pt-4">
             <Button
               size="lg"
               variant="ghost"
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={() => setIsSpinning(!isSpinning)}
               className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 text-white"
+              title={isSpinning ? "Stop spinning" : "Start spinning"}
             >
-              {isPlaying ? (
-                <Pause className="w-8 h-8" />
-              ) : (
-                <Play className="w-8 h-8 ml-1" />
-              )}
+              <Disc3 className={`w-8 h-8 ${isSpinning ? 'animate-spin' : ''}`} 
+                     style={{ animationDuration: '3s' }} />
             </Button>
             
-            {onNext && (
-              <Button
-                size="lg"
-                variant="ghost"
-                onClick={onNext}
-                className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white"
-              >
-                <SkipForward className="w-6 h-6" />
-              </Button>
+            {isOwner ? (
+              <>
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  onClick={handlePickRandomRecord}
+                  disabled={allRecords.length <= 1}
+                  className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50"
+                  title="Pick random record"
+                >
+                  <Shuffle className="w-6 h-6" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleMarkAsNowSpinning}
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                  title="Mark as Now Spinning"
+                >
+                  🎵 Now Spinning
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleStopSpinning}
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                  title="Stop Now Spinning"
+                >
+                  ⏹️ Stop
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Your name"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 w-32"
+                  size="sm"
+                />
+                <Button
+                  variant="outline"
+                  onClick={handleRequestNext}
+                  disabled={!guestName}
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 disabled:opacity-50"
+                  title="Request next record"
+                >
+                  🙋 Request Next
+                </Button>
+              </div>
             )}
           </div>
           

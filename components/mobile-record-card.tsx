@@ -119,6 +119,10 @@ export default function MobileRecordCard({ record, isOwner = true }: MobileRecor
         <NowSpinningKiosk
           record={record}
           onClose={() => setShowKiosk(false)}
+          onShuffle={() => {
+            // For mobile view, just close the kiosk since we don't have access to all records
+            setShowKiosk(false);
+          }}
           isOwner={isOwner}
         />
       )}

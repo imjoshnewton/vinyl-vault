@@ -317,7 +317,7 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
                     <FormItem>
                       <FormControl>
                         <div className="flex gap-2">
-                          <Image className="w-4 h-4 text-muted-foreground mt-2.5" aria-hidden="true" />
+                          <Image className="w-4 h-4 text-muted-foreground mt-2.5" aria-hidden="true" alt="" />
                           <Input 
                             placeholder="Thumbnail URL (optional)" 
                             {...field} 

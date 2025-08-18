@@ -50,7 +50,11 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
         </div>
         
         <Suspense fallback={<div>Loading collection...</div>}>
-          <CollectionView initialRecords={records} isOwner={isOwner} />
+          <CollectionView 
+            initialRecords={records} 
+            isOwner={isOwner} 
+            username={username}
+          />
         </Suspense>
       </main>
       <Footer />

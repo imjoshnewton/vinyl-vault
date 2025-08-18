@@ -5,17 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import RecordsTable from "@/components/records-table";
 import SpinModal from "@/components/spin-modal";
+import NowSpinningBanner from "@/components/now-spinning-banner";
 import type { VinylRecord } from "@/server/db";
 import { Shuffle, Disc3, Music, Heart } from "lucide-react";
 
 interface CollectionViewProps {
   initialRecords: VinylRecord[];
   isOwner?: boolean;
+  username?: string;
 }
 
 type TabType = "all" | "lp" | "single" | "wishlist";
 
-export default function CollectionView({ initialRecords, isOwner = true }: CollectionViewProps) {
+export default function CollectionView({ initialRecords, isOwner = true, username }: CollectionViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [showSpinModal, setShowSpinModal] = useState(false);
   
@@ -49,6 +51,18 @@ export default function CollectionView({ initialRecords, isOwner = true }: Colle
 
   return (
     <>
+      {/* Now Spinning Banner */}
+      {username && (
+        <NowSpinningBanner 
+          username={username}
+          isOwner={isOwner}
+          onViewKiosk={(record) => {
+            // TODO: Open kiosk with this record
+            console.log("View kiosk for:", record);
+          }}
+        />
+      )}
+      
       {/* Stats Cards as Tabs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card 

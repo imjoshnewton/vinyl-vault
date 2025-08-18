@@ -244,11 +244,12 @@ export default function RecordsTable({ records, isOwner = true }: RecordsTablePr
         <NowSpinningKiosk
           record={kioskRecord}
           onClose={() => setKioskRecord(null)}
-          onNext={() => {
-            const currentIndex = sortedRecords.findIndex(r => r.id === kioskRecord.id);
-            const nextRecord = sortedRecords[currentIndex + 1] || sortedRecords[0];
-            setKioskRecord(nextRecord);
+          onShuffle={() => {
+            // Pick a random record from the collection
+            const randomRecord = sortedRecords[Math.floor(Math.random() * sortedRecords.length)];
+            setKioskRecord(randomRecord);
           }}
+          allRecords={sortedRecords}
           isOwner={isOwner}
         />
       )}

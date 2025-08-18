@@ -44,7 +44,7 @@ const listeningLogSchema = z.object({
   favoriteTracks: z.string().optional(),
   guests: z.string().optional(),
   turntable: z.string().optional(),
-  preClean: z.boolean().default(false),
+  preClean: z.boolean(),
 });
 
 type ListeningLogFormData = z.infer<typeof listeningLogSchema>;
