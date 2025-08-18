@@ -400,10 +400,14 @@ class DiscogsService {
     
     // Discogs hack: try to get higher resolution by replacing image size parameters
     if (coverImage && coverImage.includes('discogs.com')) {
-      // Replace common size parameters with larger ones
+      // Try progressively larger sizes - some Discogs images support up to 1000px+
       coverImage = coverImage
-        .replace(/(_\d+)\.jpg$/, '_600.jpg') // Try 600px version
-        .replace(/\/R-\d+-/, '/R-600-'); // Alternative format
+        .replace(/(_\d+)\.jpg$/i, '_1200.jpg') // Try 1200px first
+        .replace(/\/R-\d+-/i, '/R-1200-') // Alternative format
+        .replace(/\/A-\d+-/i, '/A-1200-') // Artist images
+        .replace(/\/L-\d+-/i, '/L-1200-'); // Label images
+      
+      // If 1200px doesn't exist, we'll fallback to 600px in the component
     }
     const additionalImages = images
       .filter((img: any) => img.type !== "primary")

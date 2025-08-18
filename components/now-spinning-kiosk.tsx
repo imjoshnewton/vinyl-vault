@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { 
   Shuffle, 
   Volume2, 
   Heart, 
   MessageCircle,
-  Disc3,
   X,
   Maximize2,
   Music,
   Users
 } from "lucide-react";
+import EnhancedAlbumImage from "@/components/enhanced-album-image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -211,21 +210,13 @@ export default function NowSpinningKiosk({
         <div className="flex-shrink-0">
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-3xl opacity-30 group-hover:opacity-40 transition-opacity" />
-            <div className="relative w-80 h-80 lg:w-96 lg:h-96 rounded-2xl overflow-hidden shadow-2xl">
-              {displayImage ? (
-                <Image
-                  src={displayImage}
-                  alt={`${record.artist} - ${record.title}`}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-stone-700 to-stone-800 flex items-center justify-center">
-                  <Disc3 className="w-32 h-32 text-stone-600 animate-spin-slow" />
-                </div>
-              )}
-              
+            <div className="relative w-80 h-80 lg:w-[28rem] lg:h-[28rem] rounded-2xl overflow-hidden shadow-2xl">
+              <EnhancedAlbumImage
+                src={displayImage}
+                alt={`${record.artist} - ${record.title}`}
+                priority
+                sizes="(max-width: 1024px) 320px, 448px"
+              />
             </div>
           </div>
         </div>

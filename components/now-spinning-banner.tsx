@@ -32,14 +32,17 @@ export default function NowSpinningBanner({
       const result = await getNowSpinningAction(username);
       if (result.success && result.nowSpinning) {
         setNowSpinning(result.nowSpinning);
+      } else {
+        // Clear the banner if no record is now spinning
+        setNowSpinning(null);
       }
       setLoading(false);
     };
 
     fetchNowSpinning();
     
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchNowSpinning, 30000);
+    // Refresh every 15 seconds for more responsive updates
+    const interval = setInterval(fetchNowSpinning, 15000);
     return () => clearInterval(interval);
   }, [username]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import type { VinylRecord } from "@/server/db";
 import { ChevronUp, ChevronDown, Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
@@ -35,24 +35,24 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   const [nowSpinningId, setNowSpinningId] = useState<string | null>(null);
   
   // Fetch currently spinning record
-  useEffect(() => {
-    const fetchNowSpinning = async () => {
-      if (!username) return;
-      
-      const result = await getNowSpinningAction(username);
-      if (result.success && result.nowSpinning) {
-        setNowSpinningId(result.nowSpinning.record.id);
-      } else {
-        setNowSpinningId(null);
-      }
-    };
+  const fetchNowSpinning = useCallback(async () => {
+    if (!username) return;
     
+    const result = await getNowSpinningAction(username);
+    if (result.success && result.nowSpinning) {
+      setNowSpinningId(result.nowSpinning.record.id);
+    } else {
+      setNowSpinningId(null);
+    }
+  }, [username]);
+
+  useEffect(() => {
     fetchNowSpinning();
     
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchNowSpinning, 30000);
+    // Refresh every 15 seconds to match banner refresh rate
+    const interval = setInterval(fetchNowSpinning, 15000);
     return () => clearInterval(interval);
-  }, [username]);
+  }, [fetchNowSpinning]);
   
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -92,6 +92,11 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
         setNowSpinningId(record.id);
       }
     }
+    
+    // Immediately refresh the now spinning status
+    setTimeout(() => {
+      fetchNowSpinning();
+    }, 500);
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -210,7 +215,14 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
           </TableHeader>
         <TableBody>
           {sortedRecords.map((record) => (
-            <TableRow key={record.id} className="hover:bg-accent/50 transition-colors">
+            <TableRow 
+              key={record.id} 
+              className={`hover:bg-accent/50 transition-colors ${
+                nowSpinningId === record.id 
+                  ? 'bg-stone-100 dark:bg-stone-900/50 border-l-4 border-stone-400 dark:border-stone-600' 
+                  : ''
+              }`}
+            >
               <TableCell>
                 <div className="flex items-center gap-3">
                   {record.imageUrl ? (

@@ -36,11 +36,20 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
       // Start spinning
       await setNowSpinningAction(record.id);
     }
+    
+    // Force page refresh after action to update all components
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return (
     <>
-      <Card className="w-full">
+      <Card className={`w-full ${
+        nowSpinningId === record.id 
+          ? 'bg-stone-100 dark:bg-stone-900/50 border-l-4 border-stone-400 dark:border-stone-600' 
+          : ''
+      }`}>
         <CardContent className="p-4">
           <div className="flex gap-3">
             {/* Album Art */}
