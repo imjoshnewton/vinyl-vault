@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { 
   Play, 
@@ -21,7 +20,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import type { VinylRecord, ListeningLog, GuestComment } from "@/server/db";
+import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningKioskProps {
   record: VinylRecord;
@@ -38,14 +37,11 @@ export default function NowSpinningKiosk({
   isOwner = false,
   ownerName = "Collection Owner"
 }: NowSpinningKioskProps) {
-  const router = useRouter();
   const [isPlaying, setIsPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestComment, setGuestComment] = useState("");
-  const [listeningNote, setListeningNote] = useState("");
-  const [mood, setMood] = useState("");
   
   // Toggle fullscreen
   useEffect(() => {
@@ -63,20 +59,6 @@ export default function NowSpinningKiosk({
     } else {
       await document.exitFullscreen();
     }
-  };
-  
-  const handleAddListeningLog = async () => {
-    if (!isOwner) return;
-    
-    // TODO: Implement API call to add listening log
-    console.log("Adding listening log:", { 
-      recordId: record.id, 
-      note: listeningNote, 
-      mood 
-    });
-    
-    setListeningNote("");
-    setMood("");
   };
   
   const handleAddGuestComment = async () => {
@@ -218,7 +200,7 @@ export default function NowSpinningKiosk({
           {/* Notes Section */}
           {record.notes && (
             <Card className="bg-white/10 border-white/20 p-4">
-              <p className="text-white/80 italic">"{record.notes}"</p>
+              <p className="text-white/80 italic">&quot;{record.notes}&quot;</p>
             </Card>
           )}
           
@@ -295,7 +277,7 @@ export default function NowSpinningKiosk({
           </div>
           <div className="flex items-center gap-2">
             <Heart className="w-4 h-4" />
-            <span>{ownerName}'s Collection</span>
+            <span>{ownerName}&apos;s Collection</span>
           </div>
         </div>
       </div>
