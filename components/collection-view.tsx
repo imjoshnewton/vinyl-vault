@@ -55,7 +55,6 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
       {username && (
         <NowSpinningBanner 
           username={username}
-          isOwner={isOwner}
           onViewKiosk={(record) => {
             // TODO: Open kiosk with this record
             console.log("View kiosk for:", record);
@@ -157,7 +156,7 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
         </div>
         
         <div className="relative">
-          <RecordsTable records={filteredRecords} isOwner={isOwner} />
+          <RecordsTable records={filteredRecords} isOwner={isOwner} username={username} />
         </div>
       </Card>
       

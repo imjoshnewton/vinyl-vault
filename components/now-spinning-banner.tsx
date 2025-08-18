@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Disc3, Volume2, X } from "lucide-react";
+import { Disc3, Volume2 } from "lucide-react";
 import { getNowSpinningAction } from "@/actions/now-spinning.actions";
 import type { VinylRecord } from "@/server/db";
 
@@ -22,7 +22,6 @@ interface NowSpinningData {
 
 export default function NowSpinningBanner({ 
   username, 
-  isOwner = false,
   onViewKiosk 
 }: NowSpinningBannerProps) {
   const [nowSpinning, setNowSpinning] = useState<NowSpinningData | null>(null);

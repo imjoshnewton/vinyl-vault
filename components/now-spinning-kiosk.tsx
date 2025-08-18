@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { 
   Shuffle, 
-  RotateCcw,
   Volume2, 
   Heart, 
   MessageCircle,
@@ -20,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ListeningLogDialog from "@/components/listening-log-dialog";
-import { setNowSpinningAction, clearNowSpinningAction, requestNextRecordAction } from "@/actions/now-spinning.actions";
+import { setNowSpinningAction, clearNowSpinningAction, requestNextRecordAction, getNowSpinningAction } from "@/actions/now-spinning.actions";
 import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningKioskProps {
@@ -30,6 +29,7 @@ interface NowSpinningKioskProps {
   allRecords?: VinylRecord[];
   isOwner?: boolean;
   ownerName?: string;
+  username?: string;
 }
 
 export default function NowSpinningKiosk({ 
@@ -38,14 +38,31 @@ export default function NowSpinningKiosk({
   onShuffle,
   allRecords = [],
   isOwner = false,
-  ownerName = "Collection Owner"
+  ownerName = "Collection Owner",
+  username
 }: NowSpinningKioskProps) {
-  const [isSpinning, setIsSpinning] = useState(true);
+  const [isCurrentlySpinning, setIsCurrentlySpinning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showListeningLog, setShowListeningLog] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestComment, setGuestComment] = useState("");
+  
+  // Check if this record is currently spinning
+  useEffect(() => {
+    const checkSpinningStatus = async () => {
+      if (!username) return;
+      
+      const result = await getNowSpinningAction(username);
+      if (result.success && result.nowSpinning) {
+        setIsCurrentlySpinning(result.nowSpinning.record.id === record.id);
+      } else {
+        setIsCurrentlySpinning(false);
+      }
+    };
+    
+    checkSpinningStatus();
+  }, [username, record.id]);
   
   // Toggle fullscreen
   useEffect(() => {
@@ -87,20 +104,24 @@ export default function NowSpinningKiosk({
     const otherRecords = allRecords.filter(r => r.id !== record.id);
     if (otherRecords.length === 0) return;
     
-    const randomRecord = otherRecords[Math.floor(Math.random() * otherRecords.length)];
+    // Trigger shuffle to pick a random record
     onShuffle?.();
   };
 
   const handleMarkAsNowSpinning = async () => {
     const result = await setNowSpinningAction(record.id);
-    if (!result.success) {
+    if (result.success) {
+      setIsCurrentlySpinning(true);
+    } else {
       console.error("Failed to mark as now spinning:", result.error);
     }
   };
 
   const handleStopSpinning = async () => {
     const result = await clearNowSpinningAction();
-    if (!result.success) {
+    if (result.success) {
+      setIsCurrentlySpinning(false);
+    } else {
       console.error("Failed to stop spinning:", result.error);
     }
   };
@@ -166,25 +187,12 @@ export default function NowSpinningKiosk({
                 </div>
               )}
               
-              {/* Vinyl spinning overlay */}
-              {isSpinning && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-32 h-32 rounded-full border-8 border-stone-900/50 animate-spin" 
-                       style={{ animationDuration: '3s' }} />
-                  <div className="absolute w-4 h-4 bg-stone-900 rounded-full" />
-                </div>
-              )}
             </div>
           </div>
         </div>
         
         {/* Info Section */}
         <div className="flex-1 max-w-2xl text-white space-y-6">
-          {/* Now Playing Label */}
-          <div className="flex items-center gap-2 text-sm text-white/60">
-            <Volume2 className="w-4 h-4 animate-pulse" />
-            <span>NOW SPINNING</span>
-          </div>
           
           {/* Track Info */}
           <div>
@@ -214,19 +222,16 @@ export default function NowSpinningKiosk({
             </Badge>
           </div>
           
+          {/* Now Spinning Status */}
+          {isCurrentlySpinning && (
+            <div className="flex items-center gap-2 text-green-400">
+              <Volume2 className="w-5 h-5 animate-pulse" />
+              <span className="text-lg font-semibold">NOW SPINNING</span>
+            </div>
+          )}
+          
           {/* Vinyl Controls */}
           <div className="flex flex-wrap items-center gap-3 pt-4">
-            <Button
-              size="lg"
-              variant="ghost"
-              onClick={() => setIsSpinning(!isSpinning)}
-              className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 text-white"
-              title={isSpinning ? "Stop spinning" : "Start spinning"}
-            >
-              <Disc3 className={`w-8 h-8 ${isSpinning ? 'animate-spin' : ''}`} 
-                     style={{ animationDuration: '3s' }} />
-            </Button>
-            
             {isOwner ? (
               <>
                 <Button
@@ -240,23 +245,25 @@ export default function NowSpinningKiosk({
                   <Shuffle className="w-6 h-6" />
                 </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={handleMarkAsNowSpinning}
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  title="Mark as Now Spinning"
-                >
-                  🎵 Now Spinning
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleStopSpinning}
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  title="Stop Now Spinning"
-                >
-                  ⏹️ Stop
-                </Button>
+                {isCurrentlySpinning ? (
+                  <Button
+                    variant="outline"
+                    onClick={handleStopSpinning}
+                    className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    title="Stop Now Spinning"
+                  >
+                    ⏹️ Stop
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handleMarkAsNowSpinning}
+                    className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    title="Mark as Now Spinning"
+                  >
+                    🎵 Now Spinning
+                  </Button>
+                )}
               </>
             ) : (
               <div className="flex items-center gap-2">
@@ -265,7 +272,6 @@ export default function NowSpinningKiosk({
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/40 w-32"
-                  size="sm"
                 />
                 <Button
                   variant="outline"

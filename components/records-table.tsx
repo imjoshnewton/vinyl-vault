@@ -21,12 +21,13 @@ import { recordPlayAction } from "@/actions/records.actions";
 interface RecordsTableProps {
   records: VinylRecord[];
   isOwner?: boolean;
+  username?: string;
 }
 
 type SortField = "artist" | "title" | "genre" | "releaseYear";
 type SortOrder = "asc" | "desc";
 
-export default function RecordsTable({ records, isOwner = true }: RecordsTableProps) {
+export default function RecordsTable({ records, isOwner = true, username }: RecordsTableProps) {
   const [sortField, setSortField] = useState<SortField>("artist");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
@@ -109,7 +110,7 @@ export default function RecordsTable({ records, isOwner = true }: RecordsTablePr
         {/* Mobile cards */}
         <div className="space-y-3 p-4">
           {sortedRecords.map((record) => (
-            <MobileRecordCard key={record.id} record={record} isOwner={isOwner} />
+            <MobileRecordCard key={record.id} record={record} isOwner={isOwner} username={username} />
           ))}
         </div>
       </div>
@@ -251,6 +252,7 @@ export default function RecordsTable({ records, isOwner = true }: RecordsTablePr
           }}
           allRecords={sortedRecords}
           isOwner={isOwner}
+          username={username}
         />
       )}
     </div>

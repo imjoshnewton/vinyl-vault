@@ -13,9 +13,10 @@ import type { VinylRecord } from "@/server/db";
 interface MobileRecordCardProps {
   record: VinylRecord;
   isOwner?: boolean;
+  username?: string;
 }
 
-export default function MobileRecordCard({ record, isOwner = true }: MobileRecordCardProps) {
+export default function MobileRecordCard({ record, isOwner = true, username }: MobileRecordCardProps) {
   const [showKiosk, setShowKiosk] = useState(false);
   
   const handlePlay = async () => {
@@ -124,6 +125,7 @@ export default function MobileRecordCard({ record, isOwner = true }: MobileRecor
             setShowKiosk(false);
           }}
           isOwner={isOwner}
+          username={username}
         />
       )}
     </>
