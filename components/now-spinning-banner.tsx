@@ -52,14 +52,18 @@ export default function NowSpinningBanner({
   return (
     <Card className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-200 dark:border-purple-800">
       <div className="p-4">
+        {/* NOW SPINNING label - above content on mobile */}
+        <div className="flex items-center gap-2 mb-3 sm:hidden">
+          <Volume2 className="w-4 h-4 text-purple-600 animate-pulse" />
+          <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+            NOW SPINNING
+          </span>
+        </div>
+        
         <div className="flex items-center gap-3">
-          {/* Spinning icon */}
-          <div className="flex-shrink-0">
+          {/* Spinning icon and label - desktop only */}
+          <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
             <Volume2 className="w-5 h-5 text-purple-600 animate-pulse" />
-          </div>
-          
-          {/* Now Spinning label */}
-          <div className="flex-shrink-0">
             <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
               NOW SPINNING
             </span>
@@ -105,7 +109,7 @@ export default function NowSpinningBanner({
                 className="gap-2"
               >
                 <Disc3 className="w-4 h-4" />
-                View
+                <span className="hidden sm:inline">View</span>
               </Button>
             )}
           </div>

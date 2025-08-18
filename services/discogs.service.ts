@@ -393,7 +393,18 @@ class DiscogsService {
     // Get images - thumb for quick display, also try to get full images
     const thumb = ("thumb" in basicInfo ? basicInfo.thumb : null) || null;
     const images = ("images" in discogsItem ? discogsItem.images : null) || [];
-    const coverImage = images.find((img: any) => img.type === "primary")?.uri || thumb;
+    
+    // Try to get the highest resolution primary image
+    const primaryImage = images.find((img: any) => img.type === "primary");
+    let coverImage = primaryImage?.uri || thumb;
+    
+    // Discogs hack: try to get higher resolution by replacing image size parameters
+    if (coverImage && coverImage.includes('discogs.com')) {
+      // Replace common size parameters with larger ones
+      coverImage = coverImage
+        .replace(/(_\d+)\.jpg$/, '_600.jpg') // Try 600px version
+        .replace(/\/R-\d+-/, '/R-600-'); // Alternative format
+    }
     const additionalImages = images
       .filter((img: any) => img.type !== "primary")
       .map((img: any) => img.uri)
