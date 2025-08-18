@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import ListeningLogDialog from "@/components/listening-log-dialog";
 import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningKioskProps {
@@ -40,6 +41,7 @@ export default function NowSpinningKiosk({
   const [isPlaying, setIsPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showListeningLog, setShowListeningLog] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestComment, setGuestComment] = useState("");
   
@@ -211,9 +213,7 @@ export default function NowSpinningKiosk({
                 <Button
                   variant="outline"
                   className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  onClick={() => {
-                    // TODO: Open listening log dialog
-                  }}
+                  onClick={() => setShowListeningLog(true)}
                 >
                   <Music className="w-4 h-4 mr-2" />
                   Add Listening Note
@@ -239,30 +239,56 @@ export default function NowSpinningKiosk({
             )}
           </div>
           
-          {/* Comment Form (for guests) */}
-          {showComments && !isOwner && (
-            <Card className="bg-white/10 border-white/20 p-4 space-y-3">
-              <h3 className="text-white font-semibold">Leave a note for {ownerName}</h3>
-              <Input
-                placeholder="Your name"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-              />
-              <Textarea
-                placeholder="Share your thoughts about this record..."
-                value={guestComment}
-                onChange={(e) => setGuestComment(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 resize-none"
-                rows={3}
-              />
-              <Button
-                onClick={handleAddGuestComment}
-                disabled={!guestName || !guestComment}
-                className="w-full bg-white/20 hover:bg-white/30 text-white"
-              >
-                Submit Comment
-              </Button>
+          {/* Comments Section */}
+          {showComments && (
+            <Card className="bg-white/10 border-white/20 p-4 space-y-4">
+              {isOwner ? (
+                <>
+                  <h3 className="text-white font-semibold">Guest Comments</h3>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {/* Mock comments for now */}
+                    <div className="bg-white/5 p-3 rounded">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-white font-medium text-sm">Sarah</span>
+                        <span className="text-white/60 text-xs">2 days ago</span>
+                      </div>
+                      <p className="text-white/80 text-sm">This album brings back so many memories! Love the production on track 3.</p>
+                    </div>
+                    <div className="bg-white/5 p-3 rounded">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-white font-medium text-sm">Mike</span>
+                        <span className="text-white/60 text-xs">1 week ago</span>
+                      </div>
+                      <p className="text-white/80 text-sm">Never heard this one before - adding it to my wishlist!</p>
+                    </div>
+                  </div>
+                  <p className="text-white/60 text-xs">Comments will appear here when guests leave them</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-white font-semibold">Leave a note for {ownerName}</h3>
+                  <Input
+                    placeholder="Your name"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                  />
+                  <Textarea
+                    placeholder="Share your thoughts about this record..."
+                    value={guestComment}
+                    onChange={(e) => setGuestComment(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 resize-none"
+                    rows={3}
+                  />
+                  <Button
+                    onClick={handleAddGuestComment}
+                    disabled={!guestName || !guestComment}
+                    className="w-full bg-white/20 hover:bg-white/30 text-white"
+                  >
+                    Submit Comment
+                  </Button>
+                </>
+              )}
             </Card>
           )}
         </div>
@@ -281,6 +307,13 @@ export default function NowSpinningKiosk({
           </div>
         </div>
       </div>
+      
+      {/* Listening Log Dialog */}
+      <ListeningLogDialog
+        record={record}
+        open={showListeningLog}
+        onClose={() => setShowListeningLog(false)}
+      />
     </div>
   );
 }
