@@ -47,6 +47,18 @@ export default function NowSpinningKiosk({
   const [showListeningLog, setShowListeningLog] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestComment, setGuestComment] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  
+  // Detect system theme preference on mount
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+    
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
   
   // Check if this record is currently spinning
   useEffect(() => {
@@ -63,6 +75,18 @@ export default function NowSpinningKiosk({
     
     checkSpinningStatus();
   }, [username, record.id]);
+  
+  // Handle ESC key to close kiosk
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
   
   // Toggle fullscreen
   useEffect(() => {
@@ -142,8 +166,23 @@ export default function NowSpinningKiosk({
   // Use cover image if available, fallback to thumbnail
   const displayImage = record.coverImageUrl || record.imageUrl;
 
+  const themeClasses = {
+    background: isDarkMode 
+      ? "bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900" 
+      : "bg-stone-100",
+    text: isDarkMode ? "text-white" : "text-stone-900",
+    textSecondary: isDarkMode ? "text-white/80" : "text-stone-600",
+    textMuted: isDarkMode ? "text-white/60" : "text-stone-500",
+    textSuccess: isDarkMode ? "text-green-400" : "text-green-600",
+    badgeBg: isDarkMode ? "bg-white/10" : "bg-stone-200/80",
+    badgeText: isDarkMode ? "text-white" : "text-stone-800",
+    badgeBorder: isDarkMode ? "border-white/20" : "border-stone-300",
+    cardBg: isDarkMode ? "bg-white/10" : "bg-white/80",
+    cardBorder: isDarkMode ? "border-white/20" : "border-stone-200",
+  };
+
   return (
-    <div className={`fixed inset-0 z-50 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 ${isFullscreen ? '' : 'p-4'}`}>
+    <div className={`fixed inset-0 z-50 ${themeClasses.background} ${isFullscreen ? '' : 'p-4'}`}>
       {/* Close and Fullscreen buttons */}
       {!isFullscreen && onClose && (
         <div className="absolute top-4 right-4 flex gap-2 z-10">
@@ -151,7 +190,7 @@ export default function NowSpinningKiosk({
             variant="ghost"
             size="icon"
             onClick={toggleFullscreen}
-            className="text-white hover:bg-white/20"
+            className={`${themeClasses.text} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-200'}`}
           >
             <Maximize2 className="w-5 h-5" />
           </Button>
@@ -159,7 +198,7 @@ export default function NowSpinningKiosk({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white hover:bg-white/20"
+            className={`${themeClasses.text} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-200'}`}
           >
             <X className="w-5 h-5" />
           </Button>
@@ -192,39 +231,39 @@ export default function NowSpinningKiosk({
         </div>
         
         {/* Info Section */}
-        <div className="flex-1 max-w-2xl text-white space-y-6">
+        <div className={`flex-1 max-w-2xl ${themeClasses.text} space-y-6`}>
           
           {/* Track Info */}
           <div>
             <h1 className="text-4xl lg:text-5xl font-bold mb-2">{record.title}</h1>
-            <h2 className="text-2xl lg:text-3xl text-white/80">{record.artist}</h2>
+            <h2 className={`text-2xl lg:text-3xl ${themeClasses.textSecondary}`}>{record.artist}</h2>
           </div>
           
           {/* Metadata */}
           <div className="flex flex-wrap gap-3">
             {record.releaseYear && (
-              <Badge variant="outline" className="bg-white/10 text-white border-white/20">
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
                 {record.releaseYear}
               </Badge>
             )}
             {record.genre && (
-              <Badge variant="outline" className="bg-white/10 text-white border-white/20">
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
                 {record.genre}
               </Badge>
             )}
             {record.label && (
-              <Badge variant="outline" className="bg-white/10 text-white border-white/20">
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
                 {record.label}
               </Badge>
             )}
-            <Badge variant="outline" className="bg-white/10 text-white border-white/20">
+            <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
               {record.type}
             </Badge>
           </div>
           
           {/* Now Spinning Status */}
           {isCurrentlySpinning && (
-            <div className="flex items-center gap-2 text-green-400">
+            <div className={`flex items-center gap-2 ${themeClasses.textSuccess}`}>
               <Volume2 className="w-5 h-5 animate-pulse" />
               <span className="text-lg font-semibold">NOW SPINNING</span>
             </div>
@@ -239,7 +278,7 @@ export default function NowSpinningKiosk({
                   variant="ghost"
                   onClick={handlePickRandomRecord}
                   disabled={allRecords.length <= 1}
-                  className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50"
+                  className={`w-12 h-12 rounded-full ${themeClasses.badgeBg} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'} ${themeClasses.text} disabled:opacity-50`}
                   title="Pick random record"
                 >
                   <Shuffle className="w-6 h-6" />
@@ -249,7 +288,7 @@ export default function NowSpinningKiosk({
                   <Button
                     variant="outline"
                     onClick={handleStopSpinning}
-                    className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'}`}
                     title="Stop Now Spinning"
                   >
                     ⏹️ Stop
@@ -258,7 +297,7 @@ export default function NowSpinningKiosk({
                   <Button
                     variant="outline"
                     onClick={handleMarkAsNowSpinning}
-                    className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'}`}
                     title="Mark as Now Spinning"
                   >
                     🎵 Now Spinning
@@ -271,13 +310,13 @@ export default function NowSpinningKiosk({
                   placeholder="Your name"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 w-32"
+                  className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'} w-32`}
                 />
                 <Button
                   variant="outline"
                   onClick={handleRequestNext}
                   disabled={!guestName}
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 disabled:opacity-50"
+                  className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'} disabled:opacity-50`}
                   title="Request next record"
                 >
                   🙋 Request Next
@@ -286,10 +325,27 @@ export default function NowSpinningKiosk({
             )}
           </div>
           
+          {/* Track List */}
+          {record.tracks && record.tracks.length > 0 && (
+            <Card className={`${themeClasses.cardBg} ${themeClasses.cardBorder} p-6`}>
+              <h3 className={`${themeClasses.text} text-xl font-semibold mb-4`}>Track Listing</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {record.tracks.map((track, index) => (
+                  <div key={index} className={`flex items-center gap-3 ${themeClasses.text} opacity-90`}>
+                    <span className={`${themeClasses.textMuted} text-sm font-mono w-8 text-right`}>
+                      {index + 1}.
+                    </span>
+                    <span className="text-lg">{track}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+          
           {/* Notes Section */}
           {record.notes && (
-            <Card className="bg-white/10 border-white/20 p-4">
-              <p className="text-white/80 italic">&quot;{record.notes}&quot;</p>
+            <Card className={`${themeClasses.cardBg} ${themeClasses.cardBorder} p-4`}>
+              <p className={`${themeClasses.textSecondary} italic`}>&quot;{record.notes}&quot;</p>
             </Card>
           )}
           
@@ -299,7 +355,7 @@ export default function NowSpinningKiosk({
               <>
                 <Button
                   variant="outline"
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                  className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'}`}
                   onClick={() => setShowListeningLog(true)}
                 >
                   <Music className="w-4 h-4 mr-2" />
@@ -307,7 +363,7 @@ export default function NowSpinningKiosk({
                 </Button>
                 <Button
                   variant="outline"
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                  className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'}`}
                   onClick={() => setShowComments(!showComments)}
                 >
                   <Users className="w-4 h-4 mr-2" />
@@ -317,7 +373,7 @@ export default function NowSpinningKiosk({
             ) : (
               <Button
                 variant="outline"
-                className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} ${isDarkMode ? 'hover:bg-white/20' : 'hover:bg-stone-300'}`}
                 onClick={() => setShowComments(!showComments)}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
@@ -328,49 +384,49 @@ export default function NowSpinningKiosk({
           
           {/* Comments Section */}
           {showComments && (
-            <Card className="bg-white/10 border-white/20 p-4 space-y-4">
+            <Card className={`${themeClasses.cardBg} ${themeClasses.cardBorder} p-4 space-y-4`}>
               {isOwner ? (
                 <>
-                  <h3 className="text-white font-semibold">Guest Comments</h3>
+                  <h3 className={`${themeClasses.text} font-semibold`}>Guest Comments</h3>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {/* Mock comments for now */}
-                    <div className="bg-white/5 p-3 rounded">
+                    <div className={`${isDarkMode ? 'bg-white/5' : 'bg-stone-200/30'} p-3 rounded`}>
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-white font-medium text-sm">Sarah</span>
-                        <span className="text-white/60 text-xs">2 days ago</span>
+                        <span className={`${themeClasses.text} font-medium text-sm`}>Sarah</span>
+                        <span className={`${themeClasses.textMuted} text-xs`}>2 days ago</span>
                       </div>
-                      <p className="text-white/80 text-sm">This album brings back so many memories! Love the production on track 3.</p>
+                      <p className={`${themeClasses.textSecondary} text-sm`}>This album brings back so many memories! Love the production on track 3.</p>
                     </div>
-                    <div className="bg-white/5 p-3 rounded">
+                    <div className={`${isDarkMode ? 'bg-white/5' : 'bg-stone-200/30'} p-3 rounded`}>
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-white font-medium text-sm">Mike</span>
-                        <span className="text-white/60 text-xs">1 week ago</span>
+                        <span className={`${themeClasses.text} font-medium text-sm`}>Mike</span>
+                        <span className={`${themeClasses.textMuted} text-xs`}>1 week ago</span>
                       </div>
-                      <p className="text-white/80 text-sm">Never heard this one before - adding it to my wishlist!</p>
+                      <p className={`${themeClasses.textSecondary} text-sm`}>Never heard this one before - adding it to my wishlist!</p>
                     </div>
                   </div>
-                  <p className="text-white/60 text-xs">Comments will appear here when guests leave them</p>
+                  <p className={`${themeClasses.textMuted} text-xs`}>Comments will appear here when guests leave them</p>
                 </>
               ) : (
                 <>
-                  <h3 className="text-white font-semibold">Leave a note for {ownerName}</h3>
+                  <h3 className={`${themeClasses.text} font-semibold`}>Leave a note for {ownerName}</h3>
                   <Input
                     placeholder="Your name"
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                    className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'}`}
                   />
                   <Textarea
                     placeholder="Share your thoughts about this record..."
                     value={guestComment}
                     onChange={(e) => setGuestComment(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 resize-none"
+                    className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'} resize-none`}
                     rows={3}
                   />
                   <Button
                     onClick={handleAddGuestComment}
                     disabled={!guestName || !guestComment}
-                    className="w-full bg-white/20 hover:bg-white/30 text-white"
+                    className={`w-full ${isDarkMode ? 'bg-white/20 hover:bg-white/30' : 'bg-stone-200 hover:bg-stone-300'} ${themeClasses.text}`}
                   >
                     Submit Comment
                   </Button>
@@ -382,8 +438,8 @@ export default function NowSpinningKiosk({
       </div>
       
       {/* Bottom Info Bar */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-stone-900/80 to-transparent">
-        <div className="flex items-center justify-between text-white/60 text-sm">
+      <div className={`absolute bottom-0 left-0 right-0 p-4 ${isDarkMode ? 'bg-gradient-to-t from-stone-900/80 to-transparent' : 'bg-gradient-to-t from-stone-100/80 to-transparent'}`}>
+        <div className={`flex items-center justify-between ${themeClasses.textMuted} text-sm`}>
           <div className="flex items-center gap-4">
             <span>Played {record.playCount || 0} times</span>
             {record.condition && <span>Condition: {record.condition}</span>}

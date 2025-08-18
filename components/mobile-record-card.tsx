@@ -4,24 +4,38 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Disc3, Maximize2 } from "lucide-react";
+import { Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
 import EditRecordDialog from "@/components/edit-record-dialog";
 import NowSpinningKiosk from "@/components/now-spinning-kiosk";
 import { recordPlayAction } from "@/actions/records.actions";
+import { setNowSpinningAction, clearNowSpinningAction } from "@/actions/now-spinning.actions";
 import type { VinylRecord } from "@/server/db";
 
 interface MobileRecordCardProps {
   record: VinylRecord;
   isOwner?: boolean;
   username?: string;
+  nowSpinningId?: string | null;
 }
 
-export default function MobileRecordCard({ record, isOwner = true, username }: MobileRecordCardProps) {
+export default function MobileRecordCard({ record, isOwner = true, username, nowSpinningId }: MobileRecordCardProps) {
   const [showKiosk, setShowKiosk] = useState(false);
   
   const handlePlay = async () => {
     if (!isOwner) return;
     await recordPlayAction(record.id);
+  };
+
+  const handleToggleNowSpinning = async () => {
+    if (!isOwner) return;
+    
+    if (nowSpinningId === record.id) {
+      // Stop spinning
+      await clearNowSpinningAction();
+    } else {
+      // Start spinning
+      await setNowSpinningAction(record.id);
+    }
   };
 
   return (
@@ -51,7 +65,13 @@ export default function MobileRecordCard({ record, isOwner = true, username }: M
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-base leading-tight truncate">{record.artist}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-base leading-tight truncate">{record.artist}</h3>
+                    {nowSpinningId === record.id && (
+                      <Disc3 className="w-4 h-4 text-muted-foreground animate-spin flex-shrink-0" 
+                             style={{ animationDuration: '3s' }} />
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground truncate">{record.title}</p>
                 </div>
                 <div className="flex items-center gap-1 ml-2">
@@ -105,6 +125,17 @@ export default function MobileRecordCard({ record, isOwner = true, username }: M
                       className="gap-1 px-2"
                     >
                       <Play className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleToggleNowSpinning}
+                      className="gap-1 px-2"
+                    >
+                      {nowSpinningId === record.id ? 
+                        <Square className="w-3 h-3" /> : 
+                        <Volume2 className="w-3 h-3" />
+                      }
                     </Button>
                     <EditRecordDialog record={record} />
                   </>

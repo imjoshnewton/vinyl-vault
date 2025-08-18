@@ -7,6 +7,7 @@ import CollectionView from "@/components/collection-view";
 import Footer from "@/components/footer";
 import BackToTop from "@/components/back-to-top";
 import CollectionSearchDialog from "@/components/collection-search-dialog";
+import KioskModeButton from "@/components/kiosk-mode-button";
 
 interface PublicCollectionPageProps {
   params: Promise<{ username: string }>;
@@ -46,6 +47,7 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
           </h1>
           <div className="flex justify-center gap-3 mb-6">
             <CollectionSearchDialog records={records} />
+            <KioskModeButton username={username} />
           </div>
         </div>
         

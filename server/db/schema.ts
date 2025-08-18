@@ -59,6 +59,7 @@ export const vinylRecords = pgTable(
     type: recordTypeEnum("type").notNull().default("LP"),
     condition: recordConditionEnum("condition").default("Very Good"),
     notes: text("notes"),
+    tracks: text("tracks").array().default([]),
     imageUrl: text("image_url"),
     coverImageUrl: text("cover_image_url"), // Higher res cover
     backCoverUrl: text("back_cover_url"),

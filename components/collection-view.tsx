@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import RecordsTable from "@/components/records-table";
 import SpinModal from "@/components/spin-modal";
 import NowSpinningBanner from "@/components/now-spinning-banner";
+import NowSpinningKiosk from "@/components/now-spinning-kiosk";
 import type { VinylRecord } from "@/server/db";
 import { Shuffle, Disc3, Music, Heart } from "lucide-react";
 
@@ -20,6 +21,7 @@ type TabType = "all" | "lp" | "single" | "wishlist";
 export default function CollectionView({ initialRecords, isOwner = true, username }: CollectionViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [showSpinModal, setShowSpinModal] = useState(false);
+  const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
   
   // Separate collection items from wishlist items
   const collectionRecords = initialRecords.filter(r => !r.isWishlist);
@@ -56,8 +58,7 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
         <NowSpinningBanner 
           username={username}
           onViewKiosk={(record) => {
-            // TODO: Open kiosk with this record
-            console.log("View kiosk for:", record);
+            setKioskRecord(record);
           }}
         />
       )}
@@ -165,6 +166,23 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
         onClose={() => setShowSpinModal(false)}
         recordType={activeTab === "lp" ? "LP" : activeTab === "single" ? "Single" : undefined}
       />
+
+      {/* Now Spinning Kiosk from Banner */}
+      {kioskRecord && (
+        <NowSpinningKiosk
+          record={kioskRecord}
+          onClose={() => setKioskRecord(null)}
+          onShuffle={() => {
+            // Pick a random record from the collection
+            const allRecords = [...collectionRecords, ...wishlistRecords];
+            const randomRecord = allRecords[Math.floor(Math.random() * allRecords.length)];
+            setKioskRecord(randomRecord);
+          }}
+          allRecords={[...collectionRecords, ...wishlistRecords]}
+          isOwner={isOwner}
+          username={username}
+        />
+      )}
     </>
   );
 }

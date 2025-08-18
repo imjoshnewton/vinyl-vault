@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { VinylRecord } from "@/server/db";
-import { ChevronUp, ChevronDown, Play, Disc3, Maximize2 } from "lucide-react";
+import { ChevronUp, ChevronDown, Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -17,6 +17,7 @@ import EditRecordDialog from "@/components/edit-record-dialog";
 import MobileRecordCard from "@/components/mobile-record-card";
 import NowSpinningKiosk from "@/components/now-spinning-kiosk";
 import { recordPlayAction } from "@/actions/records.actions";
+import { getNowSpinningAction, setNowSpinningAction, clearNowSpinningAction } from "@/actions/now-spinning.actions";
 
 interface RecordsTableProps {
   records: VinylRecord[];
@@ -31,6 +32,27 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   const [sortField, setSortField] = useState<SortField>("artist");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
+  const [nowSpinningId, setNowSpinningId] = useState<string | null>(null);
+  
+  // Fetch currently spinning record
+  useEffect(() => {
+    const fetchNowSpinning = async () => {
+      if (!username) return;
+      
+      const result = await getNowSpinningAction(username);
+      if (result.success && result.nowSpinning) {
+        setNowSpinningId(result.nowSpinning.record.id);
+      } else {
+        setNowSpinningId(null);
+      }
+    };
+    
+    fetchNowSpinning();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchNowSpinning, 30000);
+    return () => clearInterval(interval);
+  }, [username]);
   
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -54,6 +76,22 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   
   const handlePlay = async (record: VinylRecord) => {
     await recordPlayAction(record.id);
+  };
+
+  const handleToggleNowSpinning = async (record: VinylRecord) => {
+    if (nowSpinningId === record.id) {
+      // Stop spinning
+      const result = await clearNowSpinningAction();
+      if (result.success) {
+        setNowSpinningId(null);
+      }
+    } else {
+      // Start spinning
+      const result = await setNowSpinningAction(record.id);
+      if (result.success) {
+        setNowSpinningId(record.id);
+      }
+    }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -110,7 +148,7 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
         {/* Mobile cards */}
         <div className="space-y-3 p-4">
           {sortedRecords.map((record) => (
-            <MobileRecordCard key={record.id} record={record} isOwner={isOwner} username={username} />
+            <MobileRecordCard key={record.id} record={record} isOwner={isOwner} username={username} nowSpinningId={nowSpinningId} />
           ))}
         </div>
       </div>
@@ -190,6 +228,10 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
                     </div>
                   )}
                   <span className="font-medium">{record.artist}</span>
+                  {nowSpinningId === record.id && (
+                    <Disc3 className="w-4 h-4 text-muted-foreground animate-spin ml-2" 
+                           style={{ animationDuration: '3s' }} />
+                  )}
                 </div>
               </TableCell>
               <TableCell>{record.title}</TableCell>
@@ -222,6 +264,18 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
                         className="p-1"
                       >
                         <Play className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleToggleNowSpinning(record)}
+                        className="p-1"
+                        title={nowSpinningId === record.id ? "Stop Now Spinning" : "Mark as Now Spinning"}
+                      >
+                        {nowSpinningId === record.id ? 
+                          <Square className="w-4 h-4" /> : 
+                          <Volume2 className="w-4 h-4" />
+                        }
                       </Button>
                       <EditRecordDialog record={record} />
                     </>

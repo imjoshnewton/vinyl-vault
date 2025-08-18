@@ -54,6 +54,7 @@ const recordSchema = z.object({
   ]),
   purchasePrice: z.string().optional(),
   notes: z.string().optional(),
+  tracks: z.string().optional(),
   isWishlist: z.boolean(),
   imageUrl: z.string().url().optional().or(z.literal("")),
   coverImageUrl: z.string().url().optional().or(z.literal("")),
@@ -80,6 +81,7 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
       catalogNumber: "",
       genre: "",
       notes: "",
+      tracks: "",
       isWishlist: false,
       imageUrl: "",
       coverImageUrl: "",
@@ -96,6 +98,7 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
         isWishlist: data.isWishlist || false,
         imageUrl: data.imageUrl || null,
         coverImageUrl: data.coverImageUrl || null,
+        tracks: data.tracks ? data.tracks.split('\n').filter(track => track.trim()).map(track => track.trim()) : [],
       };
       
       await createRecordAction(recordData);
@@ -303,6 +306,27 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tracks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Track Listing</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter each track on a new line&#10;1. Track One&#10;2. Track Two&#10;3. Track Three..." 
+                      className="resize-none min-h-[100px]" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-xs text-muted-foreground">
+                    Enter one track per line. Track numbers are optional.
+                  </p>
                 </FormItem>
               )}
             />
