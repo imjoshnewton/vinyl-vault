@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { VinylRecord } from "@/server/db";
-import { ChevronUp, ChevronDown, Play } from "lucide-react";
+import { ChevronUp, ChevronDown, Play, Disc3, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import EditRecordDialog from "@/components/edit-record-dialog";
 import MobileRecordCard from "@/components/mobile-record-card";
+import NowSpinningKiosk from "@/components/now-spinning-kiosk";
 import { recordPlayAction } from "@/actions/records.actions";
 
 interface RecordsTableProps {
@@ -27,6 +29,7 @@ type SortOrder = "asc" | "desc";
 export default function RecordsTable({ records, isOwner = true }: RecordsTableProps) {
   const [sortField, setSortField] = useState<SortField>("artist");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
   
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -163,13 +166,31 @@ export default function RecordsTable({ records, isOwner = true }: RecordsTablePr
               <TableHead className="bg-background">Label</TableHead>
               <TableHead className="bg-background">Type</TableHead>
               <TableHead className="bg-background">Plays</TableHead>
-              {isOwner && <TableHead className="bg-background">Actions</TableHead>}
+              <TableHead className="bg-background">Actions</TableHead>
             </TableRow>
           </TableHeader>
         <TableBody>
           {sortedRecords.map((record) => (
-            <TableRow key={record.id}>
-              <TableCell className="font-medium">{record.artist}</TableCell>
+            <TableRow key={record.id} className="hover:bg-accent/50 transition-colors">
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  {record.imageUrl ? (
+                    <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                      <Image
+                        src={record.imageUrl}
+                        alt={`${record.artist} - ${record.title}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center flex-shrink-0">
+                      <Disc3 className="w-5 h-5 text-secondary-foreground" />
+                    </div>
+                  )}
+                  <span className="font-medium">{record.artist}</span>
+                </div>
+              </TableCell>
               <TableCell>{record.title}</TableCell>
               <TableCell className="text-muted-foreground">{record.genre || "-"}</TableCell>
               <TableCell className="text-muted-foreground">{record.releaseYear || "-"}</TableCell>
@@ -180,22 +201,32 @@ export default function RecordsTable({ records, isOwner = true }: RecordsTablePr
                 </span>
               </TableCell>
               <TableCell>{record.playCount}</TableCell>
-              {isOwner && (
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handlePlay(record)}
-                      className="gap-1"
-                    >
-                      <Play className="w-3 h-3" />
-                      Play
-                    </Button>
-                    <EditRecordDialog record={record} />
-                  </div>
-                </TableCell>
-              )}
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setKioskRecord(record)}
+                    className="p-1"
+                    title="Now Spinning Kiosk"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </Button>
+                  {isOwner && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handlePlay(record)}
+                        className="p-1"
+                      >
+                        <Play className="w-4 h-4" />
+                      </Button>
+                      <EditRecordDialog record={record} />
+                    </>
+                  )}
+                </div>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -206,6 +237,20 @@ export default function RecordsTable({ records, isOwner = true }: RecordsTablePr
         <div className="text-center py-12 text-muted-foreground">
           No records found. Add your first vinyl to get started!
         </div>
+      )}
+      
+      {/* Now Spinning Kiosk */}
+      {kioskRecord && (
+        <NowSpinningKiosk
+          record={kioskRecord}
+          onClose={() => setKioskRecord(null)}
+          onNext={() => {
+            const currentIndex = sortedRecords.findIndex(r => r.id === kioskRecord.id);
+            const nextRecord = sortedRecords[currentIndex + 1] || sortedRecords[0];
+            setKioskRecord(nextRecord);
+          }}
+          isOwner={isOwner}
+        />
       )}
     </div>
   );

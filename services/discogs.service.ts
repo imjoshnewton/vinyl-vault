@@ -390,6 +390,15 @@ class DiscogsService {
       ...(basicInfo.styles || [])
     ].join(", ") || null;
 
+    // Get images - thumb for quick display, also try to get full images
+    const thumb = ("thumb" in basicInfo ? basicInfo.thumb : null) || null;
+    const images = ("images" in discogsItem ? discogsItem.images : null) || [];
+    const coverImage = images.find((img: any) => img.type === "primary")?.uri || thumb;
+    const additionalImages = images
+      .filter((img: any) => img.type !== "primary")
+      .map((img: any) => img.uri)
+      .slice(0, 5); // Limit to 5 additional images
+
     return {
       userId,
       artist: artists,
@@ -400,7 +409,9 @@ class DiscogsService {
       genre: genres,
       type: recordType,
       condition: "Very Good" as const, // Default condition
-      imageUrl: ("thumb" in basicInfo ? basicInfo.thumb : null) || null,
+      imageUrl: thumb,
+      coverImageUrl: coverImage,
+      additionalImages,
       discogsReleaseId: basicInfo.id?.toString() || ("id" in discogsItem ? discogsItem.id.toString() : null),
       discogsMasterId: ("master_id" in basicInfo ? basicInfo.master_id?.toString() : null) || null,
       discogsInstanceId: "instance_id" in discogsItem ? discogsItem.instance_id.toString() : null,

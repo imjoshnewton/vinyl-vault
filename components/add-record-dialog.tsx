@@ -28,8 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Upload, Image } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { createRecordAction } from "@/actions/records.actions";
 import type { NewVinylRecord } from "@/server/db";
 
@@ -54,6 +55,8 @@ const recordSchema = z.object({
   purchasePrice: z.string().optional(),
   notes: z.string().optional(),
   isWishlist: z.boolean(),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  coverImageUrl: z.string().url().optional().or(z.literal("")),
 });
 
 type RecordFormData = z.infer<typeof recordSchema>;
@@ -78,6 +81,8 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
       genre: "",
       notes: "",
       isWishlist: false,
+      imageUrl: "",
+      coverImageUrl: "",
     },
   });
 
@@ -89,6 +94,8 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
         purchasePrice: data.purchasePrice ? Math.round(parseFloat(data.purchasePrice) * 100) : null, // Convert to cents
         releaseYear: data.releaseYear ? parseInt(data.releaseYear) : null,
         isWishlist: data.isWishlist || false,
+        imageUrl: data.imageUrl || null,
+        coverImageUrl: data.coverImageUrl || null,
       };
       
       await createRecordAction(recordData);
@@ -289,12 +296,62 @@ export default function AddRecordDialog({ iconOnly = false }: AddRecordDialogPro
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Input placeholder="Additional notes..." {...field} />
+                    <Textarea 
+                      placeholder="Additional notes..." 
+                      className="resize-none" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <FormLabel>Album Artwork</FormLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="flex gap-2">
+                          <Image className="w-4 h-4 text-muted-foreground mt-2.5" />
+                          <Input 
+                            placeholder="Thumbnail URL (optional)" 
+                            {...field} 
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="coverImageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="flex gap-2">
+                          <Image className="w-4 h-4 text-muted-foreground mt-2.5" />
+                          <Input 
+                            placeholder="Full cover URL (optional)" 
+                            {...field} 
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Images will be automatically imported from Discogs if available
+              </p>
+            </div>
 
             <FormField
               control={form.control}
