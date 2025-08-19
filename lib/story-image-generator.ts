@@ -71,62 +71,8 @@ export async function generateStoryImage(
       return new Promise<void>((artResolve) => {
         const albumUrl = record.coverImageUrl || record.imageUrl;
         
-        if (albumUrl) {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          
-          img.onload = () => {
-            // Draw shadow for album art
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            ctx.shadowBlur = 25;
-            ctx.shadowOffsetY = 15;
-            
-            // Draw album art with rounded corners
-            ctx.save();
-            ctx.beginPath();
-            // Use roundRect if available, otherwise fallback to rect
-            if (ctx.roundRect) {
-              ctx.roundRect(90, 280, 900, 900, 32);
-            } else {
-              // Fallback for browsers without roundRect support
-              const x = 90, y = 280, w = 900, h = 900, r = 32;
-              ctx.moveTo(x + r, y);
-              ctx.lineTo(x + w - r, y);
-              ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-              ctx.lineTo(x + w, y + h - r);
-              ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-              ctx.lineTo(x + r, y + h);
-              ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-              ctx.lineTo(x, y + r);
-              ctx.quadraticCurveTo(x, y, x + r, y);
-              ctx.closePath();
-            }
-            ctx.clip();
-            ctx.drawImage(img, 90, 280, 900, 900);
-            ctx.restore();
-            
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetY = 0;
-            
-            artResolve();
-          };
-          
-          img.onerror = () => {
-            // Draw placeholder
-            ctx.fillStyle = '#292524';
-            ctx.fillRect(90, 280, 900, 900);
-            ctx.font = '64px system-ui';
-            ctx.fillStyle = '#57534e';
-            ctx.textAlign = 'center';
-            ctx.fillText('♪', 540, 730);
-            ctx.font = '36px system-ui';
-            ctx.fillText('No Cover Art', 540, 800);
-            artResolve();
-          };
-          
-          img.src = albumUrl;
-        } else {
-          // Draw placeholder
+        // Helper function to draw placeholder
+        const drawPlaceholder = () => {
           ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
           ctx.shadowBlur = 25;
           ctx.shadowOffsetY = 15;
@@ -157,6 +103,99 @@ export async function generateStoryImage(
           ctx.fillText('♪', 540, 730);
           ctx.font = '36px system-ui';
           ctx.fillText('No Cover Art', 540, 800);
+        };
+        
+        if (albumUrl) {
+          // Try multiple approaches to load the image
+          const loadImage = async () => {
+            
+            // First attempt: try loading with CORS for external images
+            const tryLoadWithCORS = () => new Promise<boolean>((resolve) => {
+              const corsImg = new Image();
+              if (albumUrl.startsWith('http')) {
+                corsImg.crossOrigin = 'anonymous';
+              }
+              
+              corsImg.onload = () => {
+                drawImageToCanvas(corsImg);
+                resolve(true);
+              };
+              
+              corsImg.onerror = () => resolve(false);
+              corsImg.src = albumUrl;
+            });
+            
+            // Second attempt: try loading without CORS
+            const tryLoadWithoutCORS = () => new Promise<boolean>((resolve) => {
+              const noCorsImg = new Image();
+              
+              noCorsImg.onload = () => {
+                try {
+                  drawImageToCanvas(noCorsImg);
+                  resolve(true);
+                } catch (error) {
+                  console.warn('Canvas tainted, cannot draw image:', error);
+                  resolve(false);
+                }
+              };
+              
+              noCorsImg.onerror = () => resolve(false);
+              noCorsImg.src = albumUrl;
+            });
+            
+            // Helper function to draw image with styling
+            const drawImageToCanvas = (imgElement: HTMLImageElement) => {
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+              ctx.shadowBlur = 25;
+              ctx.shadowOffsetY = 15;
+              
+              ctx.save();
+              ctx.beginPath();
+              if (ctx.roundRect) {
+                ctx.roundRect(90, 280, 900, 900, 32);
+              } else {
+                const x = 90, y = 280, w = 900, h = 900, r = 32;
+                ctx.moveTo(x + r, y);
+                ctx.lineTo(x + w - r, y);
+                ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                ctx.lineTo(x + w, y + h - r);
+                ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                ctx.lineTo(x + r, y + h);
+                ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                ctx.lineTo(x, y + r);
+                ctx.quadraticCurveTo(x, y, x + r, y);
+                ctx.closePath();
+              }
+              ctx.clip();
+              ctx.drawImage(imgElement, 90, 280, 900, 900);
+              ctx.restore();
+              
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetY = 0;
+            };
+            
+            // Try loading approaches in order
+            const corsSuccess = await tryLoadWithCORS();
+            if (corsSuccess) {
+              artResolve();
+              return;
+            }
+            
+            const noCorsSuccess = await tryLoadWithoutCORS();
+            if (noCorsSuccess) {
+              artResolve();
+              return;
+            }
+            
+            // If both fail, draw placeholder
+            drawPlaceholder();
+            artResolve();
+          };
+          
+          loadImage();
+        } else {
+          // Draw placeholder when no URL provided
+          drawPlaceholder();
           artResolve();
         }
       });
