@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { generateStoryImageAction } from "@/actions/story.actions";
+import { generateStoryImage } from "@/lib/story-image-generator";
 import type { VinylRecord } from "@/server/db";
 
 interface ShareToStoryProps {
@@ -53,17 +53,8 @@ export default function ShareToStory({
   const handleGenerateStory = async () => {
     setIsGenerating(true);
     try {
-      const result = await generateStoryImageAction({
-        record,
-        ownerName,
-        username
-      });
-      
-      if (result.success && result.imageUrl) {
-        setGeneratedImageUrl(result.imageUrl);
-      } else {
-        console.error("Failed to generate story image:", result.error);
-      }
+      const imageUrl = await generateStoryImage(record, ownerName, username);
+      setGeneratedImageUrl(imageUrl);
     } catch (error) {
       console.error("Error generating story:", error);
     } finally {
@@ -79,39 +70,21 @@ export default function ShareToStory({
       // Try Instagram app deep link
       window.location.href = "instagram://story-camera";
       
-      // Fallback to web share API with proper image conversion
+      // Fallback to web share API after a short delay
       setTimeout(async () => {
         if (navigator.share) {
           try {
-            const img = new Image();
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            const response = await fetch(generatedImageUrl);
+            const blob = await response.blob();
+            const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
             
-            canvas.width = 1080;
-            canvas.height = 1920;
-            
-            img.onload = () => {
-              if (ctx) {
-                ctx.drawImage(img, 0, 0, 1080, 1920);
-                canvas.toBlob(async (blob) => {
-                  if (blob) {
-                    try {
-                      const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
-                      await navigator.share({
-                        files: [file],
-                        title: 'Now Spinning',
-                        text: `Now spinning: ${record.artist} - ${record.title}`
-                      });
-                    } catch (error) {
-                      console.error('Error sharing to Instagram:', error);
-                    }
-                  }
-                }, 'image/jpeg', 0.95);
-              }
-            };
-            img.src = generatedImageUrl;
+            await navigator.share({
+              files: [file],
+              title: 'Now Spinning',
+              text: `Now spinning: ${record.artist} - ${record.title}`
+            });
           } catch (error) {
-            console.error('Error converting image for Instagram:', error);
+            console.error('Error sharing to Instagram:', error);
           }
         }
       }, 500);
@@ -129,39 +102,21 @@ export default function ShareToStory({
       // Try Facebook app deep link
       window.location.href = "fb://story";
       
-      // Fallback to web share API with proper image conversion
+      // Fallback to web share API after a short delay
       setTimeout(async () => {
         if (navigator.share) {
           try {
-            const img = new Image();
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            const response = await fetch(generatedImageUrl);
+            const blob = await response.blob();
+            const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
             
-            canvas.width = 1080;
-            canvas.height = 1920;
-            
-            img.onload = () => {
-              if (ctx) {
-                ctx.drawImage(img, 0, 0, 1080, 1920);
-                canvas.toBlob(async (blob) => {
-                  if (blob) {
-                    try {
-                      const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
-                      await navigator.share({
-                        files: [file],
-                        title: 'Now Spinning',
-                        text: `Now spinning: ${record.artist} - ${record.title}`
-                      });
-                    } catch (error) {
-                      console.error('Error sharing to Facebook:', error);
-                    }
-                  }
-                }, 'image/jpeg', 0.95);
-              }
-            };
-            img.src = generatedImageUrl;
+            await navigator.share({
+              files: [file],
+              title: 'Now Spinning',
+              text: `Now spinning: ${record.artist} - ${record.title}`
+            });
           } catch (error) {
-            console.error('Error converting image for Facebook:', error);
+            console.error('Error sharing to Facebook:', error);
           }
         }
       }, 500);
@@ -171,47 +126,16 @@ export default function ShareToStory({
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!generatedImageUrl) return;
     
-    try {
-      // Convert SVG to canvas and then to blob for proper image download
-      const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      canvas.width = 1080;
-      canvas.height = 1920;
-      
-      img.onload = () => {
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, 1080, 1920);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `now-spinning-${record.artist}-${record.title}.jpg`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-            }
-          }, 'image/jpeg', 0.95);
-        }
-      };
-      
-      img.src = generatedImageUrl;
-    } catch (error) {
-      console.error('Error downloading image:', error);
-      // Fallback to direct download
-      const link = document.createElement('a');
-      link.href = generatedImageUrl;
-      link.download = `now-spinning-${record.id}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    // Since we're using blob URLs, we can download directly
+    const link = document.createElement('a');
+    link.href = generatedImageUrl;
+    link.download = `now-spinning-${record.artist.replace(/\s+/g, '-')}-${record.title.replace(/\s+/g, '-')}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleShare = async () => {
@@ -219,44 +143,16 @@ export default function ShareToStory({
     
     if (navigator.share) {
       try {
-        // Convert SVG to canvas and then to blob for proper sharing
-        const img = new Image();
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        // Fetch the blob from the URL
+        const response = await fetch(generatedImageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
         
-        canvas.width = 1080;
-        canvas.height = 1920;
-        
-        const shareImage = () => new Promise<void>((resolve, reject) => {
-          img.onload = () => {
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, 1080, 1920);
-              canvas.toBlob(async (blob) => {
-                if (blob) {
-                  try {
-                    const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
-                    await navigator.share({
-                      files: [file],
-                      title: 'Now Spinning',
-                      text: `Now spinning: ${record.artist} - ${record.title}`
-                    });
-                    resolve();
-                  } catch (error) {
-                    reject(error);
-                  }
-                } else {
-                  reject(new Error('Failed to create blob'));
-                }
-              }, 'image/jpeg', 0.95);
-            } else {
-              reject(new Error('Failed to get canvas context'));
-            }
-          };
-          img.onerror = reject;
-          img.src = generatedImageUrl;
+        await navigator.share({
+          files: [file],
+          title: 'Now Spinning',
+          text: `Now spinning: ${record.artist} - ${record.title}`
         });
-        
-        await shareImage();
       } catch (error) {
         console.error("Error sharing:", error);
         // Fallback to download
@@ -313,7 +209,7 @@ export default function ShareToStory({
       ) : (
         <div className="space-y-4">
           {/* Preview */}
-          <div className="relative mx-auto w-full max-w-[200px] aspect-[9/16] rounded-lg overflow-hidden shadow-xl">
+          <div className="relative mx-auto w-full max-w-[200px] aspect-[9/16] rounded-lg overflow-hidden shadow-xl bg-stone-900">
             <img
               src={generatedImageUrl}
               alt="Story preview"
