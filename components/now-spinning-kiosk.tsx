@@ -18,7 +18,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ListeningLogDialog from "@/components/listening-log-dialog";
+import ShareToStory from "@/components/share-to-story";
 import { setNowSpinningAction, clearNowSpinningAction, requestNextRecordAction, getNowSpinningAction } from "@/actions/now-spinning.actions";
+import { addGuestCommentAction, getGuestCommentsAction } from "@/actions/comments.actions";
 import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningKioskProps {
@@ -47,6 +49,14 @@ export default function NowSpinningKiosk({
   const [guestName, setGuestName] = useState("");
   const [guestComment, setGuestComment] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [comments, setComments] = useState<{
+    id: string;
+    guestName: string;
+    comment: string;
+    createdAt: Date;
+  }[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
   
   // Detect system theme preference on mount
   useEffect(() => {
@@ -74,6 +84,29 @@ export default function NowSpinningKiosk({
     
     checkSpinningStatus();
   }, [username, record.id]);
+
+  // Fetch comments when comments section is opened
+  useEffect(() => {
+    const shouldFetch = showComments && !loadingComments && comments.length === 0;
+    if (shouldFetch) {
+      fetchComments();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showComments]);
+
+  const fetchComments = async () => {
+    setLoadingComments(true);
+    try {
+      const result = await getGuestCommentsAction(record.id);
+      if (result.success) {
+        setComments(result.comments || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch comments:", error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
   
   // Handle ESC key to close kiosk
   useEffect(() => {
@@ -106,18 +139,29 @@ export default function NowSpinningKiosk({
   };
   
   const handleAddGuestComment = async () => {
-    if (!guestName || !guestComment) return;
+    if (!guestName || !guestComment || submittingComment) return;
     
-    // TODO: Implement API call to add guest comment
-    console.log("Adding guest comment:", { 
-      recordId: record.id, 
-      guestName, 
-      comment: guestComment 
-    });
-    
-    setGuestName("");
-    setGuestComment("");
-    setShowComments(false);
+    setSubmittingComment(true);
+    try {
+      const result = await addGuestCommentAction({
+        recordId: record.id,
+        guestName,
+        comment: guestComment,
+      });
+      
+      if (result.success) {
+        setGuestName("");
+        setGuestComment("");
+        // Refresh comments to show the new one
+        await fetchComments();
+      } else {
+        console.error("Failed to add comment:", result.error);
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const handlePickRandomRecord = () => {
@@ -230,33 +274,40 @@ export default function NowSpinningKiosk({
             <h2 className={`text-2xl lg:text-3xl ${themeClasses.textSecondary}`}>{record.artist}</h2>
           </div>
           
-          {/* Metadata */}
-          <div className="flex flex-wrap gap-3">
+          {/* Metadata - Single line with better truncation */}
+          <div className="flex gap-3 items-center">
             {record.releaseYear && (
-              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} flex-shrink-0`}>
                 {record.releaseYear}
               </Badge>
             )}
             {record.genre && (
-              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
-                {record.genre}
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} max-w-sm`}>
+                <span className="block truncate">{record.genre}</span>
               </Badge>
             )}
             {record.label && (
-              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
-                {record.label}
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} max-w-xs`}>
+                <span className="block truncate">{record.label}</span>
               </Badge>
             )}
-            <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder}`}>
+            <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} flex-shrink-0`}>
               {record.type}
             </Badge>
           </div>
           
           {/* Now Spinning Status */}
           {isCurrentlySpinning && (
-            <div className={`flex items-center gap-2 ${themeClasses.textSuccess}`}>
-              <Volume2 className="w-5 h-5 animate-pulse" />
-              <span className="text-lg font-semibold">NOW SPINNING</span>
+            <div className={`flex items-center justify-between`}>
+              <div className={`flex items-center gap-2 ${themeClasses.textSuccess}`}>
+                <Volume2 className="w-5 h-5 animate-pulse" />
+                <span className="text-lg font-semibold">NOW SPINNING</span>
+              </div>
+              <ShareToStory 
+                record={record}
+                ownerName={ownerName}
+                username={username}
+              />
             </div>
           )}
           
@@ -358,7 +409,7 @@ export default function NowSpinningKiosk({
                   onClick={() => setShowComments(!showComments)}
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  View Comments
+                  {showComments ? 'Hide Comments' : 'View Comments'}
                 </Button>
               </>
             ) : (
@@ -368,7 +419,7 @@ export default function NowSpinningKiosk({
                 onClick={() => setShowComments(!showComments)}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Leave a Comment
+                {showComments ? 'Hide Comments' : 'Leave a Comment'}
               </Button>
             )}
           </div>
@@ -380,47 +431,70 @@ export default function NowSpinningKiosk({
                 <>
                   <h3 className={`${themeClasses.text} font-semibold`}>Guest Comments</h3>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
-                    {/* Mock comments for now */}
-                    <div className={`${isDarkMode ? 'bg-white/5' : 'bg-stone-200/30'} p-3 rounded`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className={`${themeClasses.text} font-medium text-sm`}>Sarah</span>
-                        <span className={`${themeClasses.textMuted} text-xs`}>2 days ago</span>
-                      </div>
-                      <p className={`${themeClasses.textSecondary} text-sm`}>This album brings back so many memories! Love the production on track 3.</p>
-                    </div>
-                    <div className={`${isDarkMode ? 'bg-white/5' : 'bg-stone-200/30'} p-3 rounded`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className={`${themeClasses.text} font-medium text-sm`}>Mike</span>
-                        <span className={`${themeClasses.textMuted} text-xs`}>1 week ago</span>
-                      </div>
-                      <p className={`${themeClasses.textSecondary} text-sm`}>Never heard this one before - adding it to my wishlist!</p>
-                    </div>
+                    {loadingComments ? (
+                      <p className={`${themeClasses.textMuted} text-sm`}>Loading comments...</p>
+                    ) : comments.length > 0 ? (
+                      comments.map((comment) => (
+                        <div key={comment.id} className={`${isDarkMode ? 'bg-white/5' : 'bg-stone-200/30'} p-3 rounded`}>
+                          <div className="flex justify-between items-start mb-2">
+                            <span className={`${themeClasses.text} font-medium text-sm`}>{comment.guestName}</span>
+                            <span className={`${themeClasses.textMuted} text-xs`}>
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className={`${themeClasses.textSecondary} text-sm`}>{comment.comment}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className={`${themeClasses.textMuted} text-sm`}>No comments yet. Be the first to leave one!</p>
+                    )}
                   </div>
-                  <p className={`${themeClasses.textMuted} text-xs`}>Comments will appear here when guests leave them</p>
                 </>
               ) : (
                 <>
-                  <h3 className={`${themeClasses.text} font-semibold`}>Leave a note for {ownerName}</h3>
-                  <Input
-                    placeholder="Your name"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'}`}
-                  />
-                  <Textarea
-                    placeholder="Share your thoughts about this record..."
-                    value={guestComment}
-                    onChange={(e) => setGuestComment(e.target.value)}
-                    className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'} resize-none`}
-                    rows={3}
-                  />
-                  <Button
-                    onClick={handleAddGuestComment}
-                    disabled={!guestName || !guestComment}
-                    className={`w-full ${isDarkMode ? 'bg-white/20 hover:bg-white/30' : 'bg-stone-200 hover:bg-stone-300'} ${themeClasses.text}`}
-                  >
-                    Submit Comment
-                  </Button>
+                  <h3 className={`${themeClasses.text} font-semibold`}>Comments</h3>
+                  
+                  {/* Show existing comments to guests */}
+                  {comments.length > 0 && (
+                    <div className="space-y-3 max-h-40 overflow-y-auto mb-4">
+                      {comments.map((comment) => (
+                        <div key={comment.id} className={`${isDarkMode ? 'bg-white/5' : 'bg-stone-200/30'} p-3 rounded`}>
+                          <div className="flex justify-between items-start mb-2">
+                            <span className={`${themeClasses.text} font-medium text-sm`}>{comment.guestName}</span>
+                            <span className={`${themeClasses.textMuted} text-xs`}>
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className={`${themeClasses.textSecondary} text-sm`}>{comment.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Add new comment form */}
+                  <div className={`space-y-3 ${comments.length > 0 ? 'border-t pt-3 ' + themeClasses.badgeBorder : ''}`}>
+                    <h4 className={`${themeClasses.text} font-medium text-sm`}>Leave a note for {ownerName}</h4>
+                    <Input
+                      placeholder="Your name"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'}`}
+                    />
+                    <Textarea
+                      placeholder="Share your thoughts about this record..."
+                      value={guestComment}
+                      onChange={(e) => setGuestComment(e.target.value)}
+                      className={`${themeClasses.badgeBg} ${themeClasses.badgeBorder} ${themeClasses.text} ${isDarkMode ? 'placeholder:text-white/40' : 'placeholder:text-stone-500/40'} resize-none`}
+                      rows={3}
+                    />
+                    <Button
+                      onClick={handleAddGuestComment}
+                      disabled={!guestName || !guestComment || submittingComment}
+                      className={`w-full ${isDarkMode ? 'bg-white/20 hover:bg-white/30' : 'bg-stone-200 hover:bg-stone-300'} ${themeClasses.text}`}
+                    >
+                      {submittingComment ? 'Submitting...' : 'Submit Comment'}
+                    </Button>
+                  </div>
                 </>
               )}
             </Card>

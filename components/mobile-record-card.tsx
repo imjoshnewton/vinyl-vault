@@ -36,11 +36,6 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
       // Start spinning
       await setNowSpinningAction(record.id);
     }
-    
-    // Force page refresh after action to update all components
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
   };
 
   return (
@@ -155,7 +150,7 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
         </CardContent>
       </Card>
       
-      {/* Now Spinning Kiosk */}
+      {/* Now Spinning Modal */}
       {showKiosk && (
         <NowSpinningKiosk
           record={record}

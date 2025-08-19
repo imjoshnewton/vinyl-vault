@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Disc3, Volume2 } from "lucide-react";
+import ShareToStory from "@/components/share-to-story";
 import { getNowSpinningAction } from "@/actions/now-spinning.actions";
 import type { VinylRecord } from "@/server/db";
 
@@ -12,6 +13,7 @@ interface NowSpinningBannerProps {
   username: string;
   isOwner?: boolean;
   onViewKiosk?: (record: VinylRecord) => void;
+  ownerName?: string;
 }
 
 interface NowSpinningData {
@@ -22,7 +24,9 @@ interface NowSpinningData {
 
 export default function NowSpinningBanner({ 
   username, 
-  onViewKiosk 
+  onViewKiosk,
+  ownerName = "Collection Owner",
+  isOwner = false
 }: NowSpinningBannerProps) {
   const [nowSpinning, setNowSpinning] = useState<NowSpinningData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,7 +107,12 @@ export default function NowSpinningBanner({
           </div>
           
           {/* Actions */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex gap-1 sm:gap-2">
+            <ShareToStory 
+              record={record}
+              ownerName={ownerName}
+              username={username}
+            />
             {onViewKiosk && (
               <Button
                 size="sm"

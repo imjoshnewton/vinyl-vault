@@ -94,9 +94,7 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
     }
     
     // Immediately refresh the now spinning status
-    setTimeout(() => {
-      fetchNowSpinning();
-    }, 500);
+    await fetchNowSpinning();
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -263,7 +261,7 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
                     variant="ghost"
                     onClick={() => setKioskRecord(record)}
                     className="p-1"
-                    title="Now Spinning Kiosk"
+                    title="Now Spinning"
                   >
                     <Maximize2 className="w-4 h-4" />
                   </Button>
@@ -306,7 +304,7 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
         </div>
       )}
       
-      {/* Now Spinning Kiosk */}
+      {/* Now Spinning Modal */}
       {kioskRecord && (
         <NowSpinningKiosk
           record={kioskRecord}

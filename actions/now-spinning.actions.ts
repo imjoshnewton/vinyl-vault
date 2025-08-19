@@ -53,6 +53,8 @@ export async function setNowSpinningAction(recordId: string): Promise<{
 
     revalidatePath("/collection");
     revalidatePath(`/u/${user.username}`);
+    revalidatePath(`/u/${user.username}/kiosk`);
+    revalidatePath("/", "layout");
 
     return { success: true };
   } catch (error) {
@@ -91,6 +93,8 @@ export async function clearNowSpinningAction(): Promise<{
 
     revalidatePath("/collection");
     revalidatePath(`/u/${user.username}`);
+    revalidatePath(`/u/${user.username}/kiosk`);
+    revalidatePath("/", "layout");
 
     return { success: true };
   } catch (error) {

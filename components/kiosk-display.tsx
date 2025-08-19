@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Volume2, Disc3, Sun, Moon } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import Link from "next/link";
 import EnhancedAlbumImage from "@/components/enhanced-album-image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -112,12 +114,20 @@ export default function KioskDisplay({ username }: KioskDisplayProps) {
           <h1 className="text-4xl font-bold mb-4">{ownerName}&apos;s Collection</h1>
           <p className={`text-xl ${themeClasses.textMuted}`}>Nothing currently spinning</p>
           <div className="mt-8">
-            <p className={`text-sm ${themeClasses.textMuted} mb-4`}>Browse the collection:</p>
-            {/* QR Code will go here */}
+            <Link 
+              href={`/u/${username}`}
+              className={`text-sm ${themeClasses.textMuted} hover:underline mb-4 block`}
+            >
+              Browse the collection
+            </Link>
+            {/* QR Code */}
             <div className="inline-block p-4 bg-white rounded-lg">
-              <div className="w-32 h-32 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                QR Code
-              </div>
+              <QRCodeSVG 
+                value={typeof window !== 'undefined' ? `${window.location.origin}/u/${username}` : `https://vinyl-vault.vercel.app/u/${username}`}
+                size={128}
+                level="M"
+                includeMargin={false}
+              />
             </div>
             <p className={`text-xs ${themeClasses.textMuted} mt-2`}>
               Scan to browse on your phone
@@ -174,24 +184,24 @@ export default function KioskDisplay({ username }: KioskDisplayProps) {
             </h2>
           </div>
           
-          {/* Badges */}
-          <div className="flex flex-wrap gap-2">
+          {/* Badges - Single line with better truncation */}
+          <div className="flex gap-2 items-center">
             {record.releaseYear && (
-              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} text-lg px-3 py-1`}>
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} text-lg px-3 py-1 flex-shrink-0`}>
                 {record.releaseYear}
               </Badge>
             )}
             {record.genre && (
-              <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-lg px-3 py-1">
-                {record.genre}
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} text-lg px-3 py-1 max-w-md`}>
+                <span className="block truncate">{record.genre}</span>
               </Badge>
             )}
             {record.label && (
-              <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-lg px-3 py-1">
-                {record.label}
+              <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} text-lg px-3 py-1 max-w-xs`}>
+                <span className="block truncate">{record.label}</span>
               </Badge>
             )}
-            <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-lg px-3 py-1">
+            <Badge variant="outline" className={`${themeClasses.badgeBg} ${themeClasses.badgeText} ${themeClasses.badgeBorder} text-lg px-3 py-1 flex-shrink-0`}>
               {record.type}
             </Badge>
           </div>
@@ -228,11 +238,19 @@ export default function KioskDisplay({ username }: KioskDisplayProps) {
           
           {/* QR Code Section */}
           <div className="mt-12">
-            <p className={`${themeClasses.textMuted} mb-4`}>Browse {ownerName}&apos;s Collection:</p>
+            <Link 
+              href={`/u/${username}`}
+              className={`${themeClasses.textMuted} hover:underline mb-4 block`}
+            >
+              Browse {ownerName}&apos;s Collection
+            </Link>
             <div className="inline-block p-4 bg-white rounded-lg">
-              <div className="w-24 h-24 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                QR Code
-              </div>
+              <QRCodeSVG 
+                value={typeof window !== 'undefined' ? `${window.location.origin}/u/${username}` : `https://vinyl-vault.vercel.app/u/${username}`}
+                size={96}
+                level="M"
+                includeMargin={false}
+              />
             </div>
             <p className={`text-xs ${themeClasses.textMuted} mt-2`}>
               Scan to browse on your phone

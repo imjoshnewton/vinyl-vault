@@ -8,6 +8,7 @@ import Footer from "@/components/footer";
 import BackToTop from "@/components/back-to-top";
 import CollectionSearchDialog from "@/components/collection-search-dialog";
 import KioskModeButton from "@/components/kiosk-mode-button";
+import OwnerViewingBanner from "@/components/owner-viewing-banner";
 
 interface PublicCollectionPageProps {
   params: Promise<{ username: string }>;
@@ -41,6 +42,8 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col">
       <main className="container mx-auto px-4 py-8 flex-grow">
+        {isOwner && <OwnerViewingBanner />}
+        
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-4">
             {ownerFirstName}&apos;s Vinyl Collection
@@ -56,6 +59,7 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
             initialRecords={records} 
             isOwner={isOwner} 
             username={username}
+            ownerName={ownerFirstName || undefined}
           />
         </Suspense>
       </main>

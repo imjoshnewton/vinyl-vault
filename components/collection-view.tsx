@@ -14,11 +14,12 @@ interface CollectionViewProps {
   initialRecords: VinylRecord[];
   isOwner?: boolean;
   username?: string;
+  ownerName?: string;
 }
 
 type TabType = "all" | "lp" | "single" | "wishlist";
 
-export default function CollectionView({ initialRecords, isOwner = true, username }: CollectionViewProps) {
+export default function CollectionView({ initialRecords, isOwner = true, username, ownerName = "Collection Owner" }: CollectionViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [showSpinModal, setShowSpinModal] = useState(false);
   const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
@@ -57,6 +58,8 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
       {username && (
         <NowSpinningBanner 
           username={username}
+          isOwner={isOwner}
+          ownerName={ownerName}
           onViewKiosk={(record) => {
             setKioskRecord(record);
           }}
@@ -180,6 +183,7 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
           }}
           allRecords={[...collectionRecords, ...wishlistRecords]}
           isOwner={isOwner}
+          ownerName={ownerName}
           username={username}
         />
       )}

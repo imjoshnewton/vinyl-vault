@@ -22,7 +22,7 @@ export default function KioskModeButton({ username }: KioskModeButtonProps) {
       className="gap-2"
     >
       <Monitor className="w-4 h-4" />
-      Kiosk Mode
+      Now Spinning
     </Button>
   );
 }
