@@ -5,12 +5,9 @@ import { Button } from "@/components/ui/button";
 import { 
   Mic, 
   Square, 
-  Loader2, 
-  Music,
+  Loader2,
   AlertCircle,
-  CheckCircle,
-  Plus,
-  Play
+  Music
 } from "lucide-react";
 import {
   Dialog,
@@ -20,18 +17,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { recognizeAudioAction, type AudioRecognitionResult } from "@/actions/audio-recognition.actions";
+import AudioRecognitionResults from "./audio-recognition-results";
 import type { VinylRecord } from "@/server/db";
 
 interface AudioRecognitionProps {
-  onTrackFound?: (track: NonNullable<AudioRecognitionResult['result']>) => void;
-  onAddRecord?: (trackData: { artist: string; title: string; label?: string; releaseYear?: number }) => void;
-  userRecords?: VinylRecord[];
+  userRecords: VinylRecord[];
 }
 
 export default function AudioRecognition({ 
-  onTrackFound, 
-  onAddRecord, 
-  userRecords = [] 
+  userRecords
 }: AudioRecognitionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -145,15 +139,6 @@ export default function AudioRecognition({
       const result = await recognizeAudioAction(formData);
       setResult(result);
       
-      if (result.status === 'success' && result.result) {
-        // Check if this track is already in user's collection
-        const existingRecord = findMatchingRecord(result.result);
-        
-        if (existingRecord && onTrackFound) {
-          onTrackFound(result.result);
-        }
-      }
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process audio');
     } finally {
@@ -161,25 +146,12 @@ export default function AudioRecognition({
     }
   };
   
-  const findMatchingRecord = (track: NonNullable<AudioRecognitionResult['result']>) => {
-    return userRecords.find(record => 
-      record.artist.toLowerCase().includes(track.artist.toLowerCase()) &&
-      record.title.toLowerCase().includes(track.title.toLowerCase())
-    );
-  };
-  
-  const handleAddRecord = () => {
-    if (result?.result && onAddRecord) {
-      const trackData = {
-        artist: result.result.artist,
-        title: result.result.album || 'Unknown Album',
-        label: result.result.label,
-        releaseYear: result.result.release_date ? 
-          new Date(result.result.release_date).getFullYear() : undefined,
-        // We'll need to search Discogs for more complete data
-      };
-      onAddRecord(trackData);
-    }
+  const handleClose = () => {
+    setIsOpen(false);
+    setResult(null);
+    setError(null);
+    setRecordingSize(0);
+    setRecordingTime(0);
   };
   
   const formatTime = (seconds: number) => {
@@ -305,88 +277,33 @@ export default function AudioRecognition({
             </div>
           )}
           
-          {result && (
+          {result && result.status === 'success' && result.result && (
+            <AudioRecognitionResults
+              result={result}
+              userRecords={userRecords}
+              onClose={handleClose}
+            />
+          )}
+          
+          {result && result.status === 'error' && (
             <div className="space-y-4">
-              {result.status === 'success' && result.result ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Track Identified!</span>
-                  </div>
-                  
-                  <div className="p-4 bg-muted rounded-lg space-y-2">
-                    <div className="font-semibold text-lg">{result.result.title}</div>
-                    <div className="text-muted-foreground">{result.result.artist}</div>
-                    {result.result.album && (
-                      <div className="text-sm text-muted-foreground">
-                        Album: {result.result.album}
-                      </div>
-                    )}
-                    {result.result.release_date && (
-                      <div className="text-sm text-muted-foreground">
-                        Released: {new Date(result.result.release_date).getFullYear()}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {findMatchingRecord(result.result) ? (
-                      <Button
-                        onClick={() => {
-                          const record = findMatchingRecord(result.result!);
-                          if (record && onTrackFound) {
-                            onTrackFound(result.result!);
-                          }
-                        }}
-                        className="w-full gap-2"
-                      >
-                        <Play className="w-4 h-4" />
-                        Set as Now Spinning
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleAddRecord}
-                        variant="outline"
-                        className="w-full gap-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add to Collection
-                      </Button>
-                    )}
-                    
-                    <Button
-                      onClick={() => {
-                        setResult(null);
-                        setError(null);
-                      }}
-                      variant="ghost"
-                      className="w-full"
-                    >
-                      Listen Again
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-yellow-600">
-                    <AlertCircle className="w-5 h-5" />
-                    <span className="font-medium">No Match Found</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {result.error?.error_message || "Could not identify the music. Try recording closer to the speakers or with less background noise."}
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setResult(null);
-                      setError(null);
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Try Again
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-yellow-600">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-medium">No Match Found</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {result.error?.error_message || "Could not identify the music. Try recording closer to the speakers or with less background noise."}
+              </p>
+              <Button
+                onClick={() => {
+                  setResult(null);
+                  setError(null);
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                Try Again
+              </Button>
             </div>
           )}
         </div>
