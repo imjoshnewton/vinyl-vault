@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AudioRecognition from "./audio-recognition";
 import { setNowSpinningAction } from "@/actions/now-spinning.actions";
+import { createRecordAction } from "@/actions/records.actions";
 import type { AudioRecognitionResult } from "@/actions/audio-recognition.actions";
 import type { VinylRecord } from "@/server/db";
 
@@ -48,13 +49,45 @@ export default function AudioRecognitionWrapper({ userRecords }: AudioRecognitio
     }
   };
 
-  const handleAddRecord = (trackData: { artist: string; title: string; label?: string; releaseYear?: number }) => {
-    // For now, show a toast with instructions
-    // In the future, we could integrate with the AddRecordDialog or create a new record directly
-    toast.info("Add this record to your collection", {
-      description: `Search for "${trackData.artist}" to add it to your collection`,
-      duration: 5000,
-    });
+  const handleAddRecord = async (trackData: { artist: string; title: string; label?: string; releaseYear?: number }) => {
+    try {
+      // Create a new record with the recognized track data
+      const newRecord = await createRecordAction({
+        artist: trackData.artist,
+        title: trackData.title || "Unknown Album",
+        label: trackData.label || "",
+        releaseYear: trackData.releaseYear || null,
+        type: "LP", // Default to LP, user can change later
+        genre: "",
+        condition: "NM",
+        sleeveCondition: "NM",
+        catalogNumber: "",
+        notes: "Added via audio recognition",
+        isWishlist: false,
+        imageUrl: null,
+        smallImageUrl: null,
+        largeImageUrl: null,
+        discogsReleaseId: null,
+        discogsArtistId: null,
+        discogsLabelId: null,
+        spotifyAlbumId: null,
+        spotifyArtistId: null,
+      });
+      
+      toast.success("Record added to your collection!", {
+        description: `${trackData.artist} - ${trackData.title}`,
+      });
+      
+      // Set it as now spinning
+      await setNowSpinningAction(newRecord.id);
+      
+      router.refresh();
+    } catch (error) {
+      console.error('Error adding record:', error);
+      toast.error("Failed to add record", {
+        description: "Please try again or add manually",
+      });
+    }
   };
 
   return (
