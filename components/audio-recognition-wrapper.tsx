@@ -59,19 +59,11 @@ export default function AudioRecognitionWrapper({ userRecords }: AudioRecognitio
         releaseYear: trackData.releaseYear || null,
         type: "LP", // Default to LP, user can change later
         genre: "",
-        condition: "NM",
-        sleeveCondition: "NM",
+        condition: "Near Mint",
         catalogNumber: "",
         notes: "Added via audio recognition",
         isWishlist: false,
         imageUrl: null,
-        smallImageUrl: null,
-        largeImageUrl: null,
-        discogsReleaseId: null,
-        discogsArtistId: null,
-        discogsLabelId: null,
-        spotifyAlbumId: null,
-        spotifyArtistId: null,
       });
       
       toast.success("Record added to your collection!", {
