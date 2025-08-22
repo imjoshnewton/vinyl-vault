@@ -9,6 +9,7 @@ import DiscogsSyncDialog from "@/components/discogs-sync-dialog";
 import DiscogsSearchDialog from "@/components/discogs-search-dialog";
 import Footer from "@/components/footer";
 import BackToTop from "@/components/back-to-top";
+import AudioRecognitionWrapper from "@/components/audio-recognition-wrapper";
 
 export default async function CollectionPage() {
   // Get current user from Clerk
@@ -53,6 +54,7 @@ export default async function CollectionPage() {
             {userFirstName ? `${userFirstName}'s` : "My"} Vinyl Collection
           </h1>
           <div className="flex justify-center gap-3 mb-6">
+            <AudioRecognitionWrapper userRecords={records} />
             <DiscogsSearchDialog />
             <DiscogsSyncDialog />
             <ShareCollectionDialog user={user} />

@@ -7,6 +7,7 @@ import RecordsTable from "@/components/records-table";
 import SpinModal from "@/components/spin-modal";
 import NowSpinningBanner from "@/components/now-spinning-banner";
 import NowSpinningKiosk from "@/components/now-spinning-kiosk";
+import CollectionToolsDropdown from "@/components/collection-tools-dropdown";
 import type { VinylRecord } from "@/server/db";
 import { Shuffle, Disc3, Music, Heart } from "lucide-react";
 
@@ -148,14 +149,20 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
           </h2>
           
           {activeTab !== "wishlist" && (
-            <Button 
-              onClick={() => setShowSpinModal(true)}
-              className="gap-2"
-              disabled={filteredRecords.length === 0}
-            >
-              <Shuffle className="w-4 h-4" />
-              Spin
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => setShowSpinModal(true)}
+                className="gap-2"
+                disabled={filteredRecords.length === 0}
+              >
+                <Shuffle className="w-4 h-4" />
+                Spin
+              </Button>
+              <CollectionToolsDropdown 
+                records={initialRecords} 
+                username={username || "User"} 
+              />
+            </div>
           )}
         </div>
         

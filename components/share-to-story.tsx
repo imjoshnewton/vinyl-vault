@@ -65,31 +65,25 @@ export default function ShareToStory({
   const handleShareToInstagram = async () => {
     if (!generatedImageUrl) return;
     
-    // For mobile, try to open Instagram app
-    if (isMobile) {
-      // Try Instagram app deep link
-      window.location.href = "instagram://story-camera";
-      
-      // Fallback to web share API after a short delay
-      setTimeout(async () => {
-        if (navigator.share) {
-          try {
-            const response = await fetch(generatedImageUrl);
-            const blob = await response.blob();
-            const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
-            
-            await navigator.share({
-              files: [file],
-              title: 'Now Spinning',
-              text: `Now spinning: ${record.artist} - ${record.title}`
-            });
-          } catch (error) {
-            console.error('Error sharing to Instagram:', error);
-          }
-        }
-      }, 500);
+    // For mobile, use Web Share API directly (works better than deep linking)
+    if (isMobile && navigator.share) {
+      try {
+        const response = await fetch(generatedImageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
+        
+        await navigator.share({
+          files: [file],
+          title: 'Now Spinning',
+          text: `Now spinning: ${record.artist} - ${record.title}`
+        });
+      } catch (error) {
+        console.error('Error sharing to Instagram:', error);
+        // Fallback to download if sharing fails
+        handleDownload();
+      }
     } else {
-      // On desktop, just download the image
+      // On desktop or if Web Share API not available, download the image
       handleDownload();
     }
   };
@@ -97,31 +91,25 @@ export default function ShareToStory({
   const handleShareToFacebook = async () => {
     if (!generatedImageUrl) return;
     
-    // For mobile, try to open Facebook app
-    if (isMobile) {
-      // Try Facebook app deep link
-      window.location.href = "fb://story";
-      
-      // Fallback to web share API after a short delay
-      setTimeout(async () => {
-        if (navigator.share) {
-          try {
-            const response = await fetch(generatedImageUrl);
-            const blob = await response.blob();
-            const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
-            
-            await navigator.share({
-              files: [file],
-              title: 'Now Spinning',
-              text: `Now spinning: ${record.artist} - ${record.title}`
-            });
-          } catch (error) {
-            console.error('Error sharing to Facebook:', error);
-          }
-        }
-      }, 500);
+    // For mobile, use Web Share API directly (works better than deep linking)
+    if (isMobile && navigator.share) {
+      try {
+        const response = await fetch(generatedImageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `now-spinning-${record.artist}-${record.title}.jpg`, { type: 'image/jpeg' });
+        
+        await navigator.share({
+          files: [file],
+          title: 'Now Spinning',
+          text: `Now spinning: ${record.artist} - ${record.title}`
+        });
+      } catch (error) {
+        console.error('Error sharing to Facebook:', error);
+        // Fallback to download if sharing fails
+        handleDownload();
+      }
     } else {
-      // On desktop, just download the image
+      // On desktop or if Web Share API not available, download the image
       handleDownload();
     }
   };

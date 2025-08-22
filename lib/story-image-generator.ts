@@ -109,7 +109,30 @@ export async function generateStoryImage(
           // Try multiple approaches to load the image
           const loadImage = async () => {
             
-            // First attempt: try loading with CORS for external images
+            // Helper to get proxied URL for external images
+            const getProxiedUrl = (url: string) => {
+              // Check if it's an external URL that needs proxying
+              if (url.startsWith('http') && !url.includes(window.location.hostname)) {
+                return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+              }
+              return url;
+            };
+            
+            // First attempt: try loading with proxy for external images
+            const tryLoadWithProxy = () => new Promise<boolean>((resolve) => {
+              const proxyImg = new Image();
+              const proxiedUrl = getProxiedUrl(albumUrl);
+              
+              proxyImg.onload = () => {
+                drawImageToCanvas(proxyImg);
+                resolve(true);
+              };
+              
+              proxyImg.onerror = () => resolve(false);
+              proxyImg.src = proxiedUrl;
+            });
+            
+            // Second attempt: try loading with CORS for external images
             const tryLoadWithCORS = () => new Promise<boolean>((resolve) => {
               const corsImg = new Image();
               if (albumUrl.startsWith('http')) {
@@ -125,7 +148,7 @@ export async function generateStoryImage(
               corsImg.src = albumUrl;
             });
             
-            // Second attempt: try loading without CORS
+            // Third attempt: try loading without CORS
             const tryLoadWithoutCORS = () => new Promise<boolean>((resolve) => {
               const noCorsImg = new Image();
               
@@ -175,6 +198,12 @@ export async function generateStoryImage(
             };
             
             // Try loading approaches in order
+            const proxySuccess = await tryLoadWithProxy();
+            if (proxySuccess) {
+              artResolve();
+              return;
+            }
+            
             const corsSuccess = await tryLoadWithCORS();
             if (corsSuccess) {
               artResolve();
@@ -187,7 +216,7 @@ export async function generateStoryImage(
               return;
             }
             
-            // If both fail, draw placeholder
+            // If all fail, draw placeholder
             drawPlaceholder();
             artResolve();
           };
