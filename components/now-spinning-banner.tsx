@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Disc3, Volume2 } from "lucide-react";
 import ShareToStory from "@/components/share-to-story";
-import { useNowSpinning } from "@/providers/now-spinning-provider";
+import { useOptionalNowSpinning } from "@/providers/now-spinning-provider";
 import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningBannerProps {
@@ -22,7 +22,14 @@ export default function NowSpinningBanner({
   ownerName = "Collection Owner",
   isOwner = false
 }: NowSpinningBannerProps) {
-  const { nowSpinning, isLoading: loading } = useNowSpinning();
+  const nowSpinningContext = useOptionalNowSpinning();
+  
+  // If no context is available, don't render anything
+  if (!nowSpinningContext) {
+    return null;
+  }
+  
+  const { nowSpinning, isLoading: loading } = nowSpinningContext;
 
   if (loading || !nowSpinning) {
     return null;
