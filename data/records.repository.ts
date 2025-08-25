@@ -43,19 +43,36 @@ export const recordsRepository = {
       );
     }
 
-    // Apply sorting
+    // Apply sorting with secondary and tertiary sort for stability
+    const sortBy = options?.sortBy ?? "artist";
+    const sortOrder = options?.sortOrder ?? "asc";
+    
     const sortColumn = {
       artist: vinylRecords.artist,
       title: vinylRecords.title,
       releaseYear: vinylRecords.releaseYear,
       createdAt: vinylRecords.createdAt,
-    }[options?.sortBy ?? "artist"];
+    }[sortBy];
+
+    // Build order by clause with secondary sorts for stability
+    const orderByClause = [];
+    
+    // Primary sort
+    orderByClause.push(sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn));
+    
+    // Secondary sort - always by title if not already sorting by title
+    if (sortBy !== "title") {
+      orderByClause.push(asc(vinylRecords.title));
+    }
+    
+    // Tertiary sort - always by ID for ultimate stability
+    orderByClause.push(asc(vinylRecords.id));
 
     const query = db
       .select()
       .from(vinylRecords)
       .where(and(...conditions))
-      .orderBy(options?.sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn));
+      .orderBy(...orderByClause);
 
     return await query;
   },

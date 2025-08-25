@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { VinylRecord } from "@/server/db";
 import { ChevronUp, ChevronDown, Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sortRecords } from "@/lib/sort-utils";
 import {
   Table,
   TableBody,
@@ -63,16 +64,12 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
     }
   };
   
-  const sortedRecords = [...records].sort((a, b) => {
-    const aVal = a[sortField] ?? "";
-    const bVal = b[sortField] ?? "";
-    
-    if (sortOrder === "asc") {
-      return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-    } else {
-      return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-    }
-  });
+  // Use stable sorting utility that includes secondary sorts
+  const sortedRecords = sortRecords(
+    records,
+    sortField === "genre" ? "artist" : sortField, // Map genre to artist since genre isn't in the sort function
+    sortOrder
+  );
   
   const handlePlay = async (record: VinylRecord) => {
     await recordPlayAction(record.id);
