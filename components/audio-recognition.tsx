@@ -167,7 +167,7 @@ export default function AudioRecognition({
           title="Identify what's playing"
         >
           <Music className="w-4 h-4" />
-          <span className="hidden sm:inline">Listen</span>
+          <span>Listen</span>
         </Button>
       </DialogTrigger>
       

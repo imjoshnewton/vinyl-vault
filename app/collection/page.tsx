@@ -64,12 +64,27 @@ export default async function CollectionPage() {
             <h1 className="text-4xl font-bold mb-4">
               {userFirstName ? `${userFirstName}'s` : "My"} Vinyl Collection
             </h1>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6 max-w-2xl mx-auto">
-              <AudioRecognitionWrapper userRecords={records} />
-              <DiscogsSearchDialog />
-              <DiscogsSyncDialog />
-              <ShareCollectionDialog user={user} />
-              <AddRecordDialog />
+            <div className="mb-6">
+              {/* Mobile: 3 + 2 layout */}
+              <div className="sm:hidden">
+                <div className="flex justify-center gap-3 mb-3">
+                  <AudioRecognitionWrapper userRecords={records} />
+                  <DiscogsSearchDialog />
+                  <DiscogsSyncDialog />
+                </div>
+                <div className="flex justify-center gap-3">
+                  <ShareCollectionDialog user={user} />
+                  <AddRecordDialog />
+                </div>
+              </div>
+              {/* Desktop: All in one row */}
+              <div className="hidden sm:flex justify-center gap-3">
+                <AudioRecognitionWrapper userRecords={records} />
+                <DiscogsSearchDialog />
+                <DiscogsSyncDialog />
+                <ShareCollectionDialog user={user} />
+                <AddRecordDialog />
+              </div>
             </div>
           </div>
           
