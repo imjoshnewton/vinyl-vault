@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import RecordsTable from "@/components/records-table";
 import SpinModal from "@/components/spin-modal";
 import NowSpinningBanner from "@/components/now-spinning-banner";
@@ -151,16 +158,17 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
           
           {/* Mobile: Show select dropdown */}
           <div className="sm:hidden">
-            <select 
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value as TabType)}
-              className="text-lg font-semibold bg-transparent border-none outline-none"
-            >
-              <option value="all">All Records</option>
-              <option value="lp">LPs</option>
-              <option value="single">Singles</option>
-              <option value="wishlist">Wish List</option>
-            </select>
+            <Select value={activeTab} onValueChange={(value: TabType) => setActiveTab(value)}>
+              <SelectTrigger className="w-40 text-lg font-semibold border-none shadow-none p-0 h-auto">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Records</SelectItem>
+                <SelectItem value="lp">LPs</SelectItem>
+                <SelectItem value="single">Singles</SelectItem>
+                <SelectItem value="wishlist">Wish List</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           {activeTab !== "wishlist" && (
