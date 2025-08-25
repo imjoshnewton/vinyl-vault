@@ -8,7 +8,7 @@ import EnhancedAlbumImage from "@/components/enhanced-album-image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getNowSpinningAction } from "@/actions/now-spinning.actions";
+import { useNowSpinning } from "@/providers/now-spinning-provider";
 import { getPublicStatsAction } from "@/actions/public.actions";
 import type { VinylRecord, User } from "@/server/db";
 
@@ -16,14 +16,8 @@ interface KioskDisplayProps {
   username: string;
 }
 
-interface NowSpinningData {
-  id: string;
-  record: VinylRecord;
-  startedAt: Date;
-}
-
 export default function KioskDisplay({ username }: KioskDisplayProps) {
-  const [nowSpinning, setNowSpinning] = useState<NowSpinningData | null>(null);
+  const { nowSpinning, isLoading: nowSpinningLoading } = useNowSpinning();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -40,36 +34,23 @@ export default function KioskDisplay({ username }: KioskDisplayProps) {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserData = async () => {
       try {
-        // Fetch user data if not already loaded
-        if (!user) {
-          const statsResult = await getPublicStatsAction(username);
-          if (statsResult?.user) {
-            setUser(statsResult.user);
-          }
-        }
-
-        // Fetch now spinning data
-        const result = await getNowSpinningAction(username);
-        if (result.success && result.nowSpinning) {
-          setNowSpinning(result.nowSpinning);
-        } else {
-          setNowSpinning(null);
+        // Only fetch user data (now spinning comes from context)
+        const statsResult = await getPublicStatsAction(username);
+        if (statsResult?.user) {
+          setUser(statsResult.user);
         }
       } catch (error) {
-        console.error("Failed to fetch kiosk data:", error);
+        console.error("Failed to fetch user data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-    
-    // Auto-refresh every 30 seconds for kiosk displays
-    // This reduces database load while still keeping it relatively fresh
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+    if (!user) {
+      fetchUserData();
+    }
   }, [username, user]);
 
   const themeClasses = {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import type { VinylRecord } from "@/server/db";
 import { ChevronUp, ChevronDown, Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sortRecords } from "@/lib/sort-utils";
+import { useOptionalNowSpinning } from "@/providers/now-spinning-provider";
 import {
   Table,
   TableBody,
@@ -18,7 +19,6 @@ import EditRecordDialog from "@/components/edit-record-dialog";
 import MobileRecordCard from "@/components/mobile-record-card";
 import NowSpinningKiosk from "@/components/now-spinning-kiosk";
 import { recordPlayAction } from "@/actions/records.actions";
-import { getNowSpinningAction, setNowSpinningAction, clearNowSpinningAction } from "@/actions/now-spinning.actions";
 
 interface RecordsTableProps {
   records: VinylRecord[];
@@ -33,26 +33,10 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   const [sortField, setSortField] = useState<SortField>("artist");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
-  const [nowSpinningId, setNowSpinningId] = useState<string | null>(null);
   
-  // Fetch currently spinning record
-  const fetchNowSpinning = useCallback(async () => {
-    if (!username) return;
-    
-    const result = await getNowSpinningAction(username);
-    if (result.success && result.nowSpinning) {
-      setNowSpinningId(result.nowSpinning.record.id);
-    } else {
-      setNowSpinningId(null);
-    }
-  }, [username]);
-
-  useEffect(() => {
-    fetchNowSpinning();
-    
-    // Only refresh when component mounts, not periodically
-    // The now spinning status will update when user interactions occur
-  }, [fetchNowSpinning]);
+  // Use the optional now spinning context if available
+  const nowSpinningContext = useOptionalNowSpinning();
+  const nowSpinningId = nowSpinningContext?.nowSpinning?.record.id || null;
   
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -75,22 +59,19 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   };
 
   const handleToggleNowSpinning = async (record: VinylRecord) => {
-    if (nowSpinningId === record.id) {
-      // Stop spinning
-      const result = await clearNowSpinningAction();
-      if (result.success) {
-        setNowSpinningId(null);
-      }
-    } else {
-      // Start spinning
-      const result = await setNowSpinningAction(record.id);
-      if (result.success) {
-        setNowSpinningId(record.id);
-      }
-    }
+    if (!nowSpinningContext) return; // No context available, do nothing
     
-    // Immediately refresh the now spinning status
-    await fetchNowSpinning();
+    try {
+      if (nowSpinningId === record.id) {
+        // Stop spinning
+        await nowSpinningContext.clearNowSpinning();
+      } else {
+        // Start spinning
+        await nowSpinningContext.setNowSpinning(record.id);
+      }
+    } catch (error) {
+      console.error("Failed to toggle now spinning:", error);
+    }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -271,18 +252,20 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
                       >
                         <Play className="w-4 h-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleToggleNowSpinning(record)}
-                        className="p-1"
-                        title={nowSpinningId === record.id ? "Stop Now Spinning" : "Mark as Now Spinning"}
-                      >
-                        {nowSpinningId === record.id ? 
-                          <Square className="w-4 h-4" /> : 
-                          <Volume2 className="w-4 h-4" />
-                        }
-                      </Button>
+                      {nowSpinningContext && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleToggleNowSpinning(record)}
+                          className="p-1"
+                          title={nowSpinningId === record.id ? "Stop Now Spinning" : "Mark as Now Spinning"}
+                        >
+                          {nowSpinningId === record.id ? 
+                            <Square className="w-4 h-4" /> : 
+                            <Volume2 className="w-4 h-4" />
+                          }
+                        </Button>
+                      )}
                       <EditRecordDialog record={record} />
                     </>
                   )}

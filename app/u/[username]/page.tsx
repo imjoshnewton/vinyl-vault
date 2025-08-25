@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { getPublicCollectionAction, getPublicStatsAction } from "@/actions/public.actions";
+import { getNowSpinningAction } from "@/actions/now-spinning.actions";
 import { usersRepository } from "@/data/users.repository";
 import CollectionView from "@/components/collection-view";
 import Footer from "@/components/footer";
@@ -9,6 +10,7 @@ import BackToTop from "@/components/back-to-top";
 import CollectionSearchDialog from "@/components/collection-search-dialog";
 import KioskModeButton from "@/components/kiosk-mode-button";
 import OwnerViewingBanner from "@/components/owner-viewing-banner";
+import { NowSpinningProvider } from "@/providers/now-spinning-provider";
 
 interface PublicCollectionPageProps {
   params: Promise<{ username: string }>;
@@ -25,6 +27,10 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
     notFound();
   }
   
+  // Get now spinning data for the provider
+  const nowSpinningResult = await getNowSpinningAction(username);
+  const initialNowSpinning = nowSpinningResult.success ? nowSpinningResult.nowSpinning : null;
+  
   // Check if current user is the owner
   const clerkUser = await currentUser();
   let isOwner = false;
@@ -40,32 +46,39 @@ export default async function PublicCollectionPage({ params }: PublicCollectionP
   const ownerFirstName = collectionOwner.name?.split(' ')[0] || collectionOwner.username;
 
   return (
-    <div className="min-h-screen bg-stone-100 flex flex-col">
-      <main className="container mx-auto px-4 py-8 flex-grow">
-        {isOwner && <OwnerViewingBanner />}
-        
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">
-            {ownerFirstName}&apos;s Vinyl Collection
-          </h1>
-          <div className="flex justify-center gap-3 mb-6">
-            <CollectionSearchDialog records={records} />
-            <KioskModeButton username={username} />
+    <NowSpinningProvider 
+      username={username} 
+      enablePolling={true}
+      pollingInterval={30000} // 30 seconds for public profiles
+      initialData={initialNowSpinning}
+    >
+      <div className="min-h-screen bg-stone-100 flex flex-col">
+        <main className="container mx-auto px-4 py-8 flex-grow">
+          {isOwner && <OwnerViewingBanner />}
+          
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold mb-4">
+              {ownerFirstName}&apos;s Vinyl Collection
+            </h1>
+            <div className="flex justify-center gap-3 mb-6">
+              <CollectionSearchDialog records={records} />
+              <KioskModeButton username={username} />
+            </div>
           </div>
-        </div>
-        
-        <Suspense fallback={<div>Loading collection...</div>}>
-          <CollectionView 
-            initialRecords={records} 
-            isOwner={isOwner} 
-            username={username}
-            ownerName={ownerFirstName || undefined}
-          />
-        </Suspense>
-      </main>
-      <Footer />
-      <BackToTop />
-    </div>
+          
+          <Suspense fallback={<div>Loading collection...</div>}>
+            <CollectionView 
+              initialRecords={records} 
+              isOwner={isOwner} 
+              username={username}
+              ownerName={ownerFirstName || undefined}
+            />
+          </Suspense>
+        </main>
+        <Footer />
+        <BackToTop />
+      </div>
+    </NowSpinningProvider>
   );
 }
 

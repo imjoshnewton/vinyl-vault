@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Disc3, Volume2 } from "lucide-react";
 import ShareToStory from "@/components/share-to-story";
-import { getNowSpinningAction } from "@/actions/now-spinning.actions";
+import { useNowSpinning } from "@/providers/now-spinning-provider";
 import type { VinylRecord } from "@/server/db";
 
 interface NowSpinningBannerProps {
@@ -16,11 +15,6 @@ interface NowSpinningBannerProps {
   ownerName?: string;
 }
 
-interface NowSpinningData {
-  id: string;
-  record: VinylRecord;
-  startedAt: Date;
-}
 
 export default function NowSpinningBanner({ 
   username, 
@@ -28,28 +22,7 @@ export default function NowSpinningBanner({
   ownerName = "Collection Owner",
   isOwner = false
 }: NowSpinningBannerProps) {
-  const [nowSpinning, setNowSpinning] = useState<NowSpinningData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchNowSpinning = async () => {
-      const result = await getNowSpinningAction(username);
-      if (result.success && result.nowSpinning) {
-        setNowSpinning(result.nowSpinning);
-      } else {
-        // Clear the banner if no record is now spinning
-        setNowSpinning(null);
-      }
-      setLoading(false);
-    };
-
-    fetchNowSpinning();
-    
-    // Refresh every 60 seconds instead of 15 to reduce database load
-    // Most users won't change what's spinning that frequently
-    const interval = setInterval(fetchNowSpinning, 60000);
-    return () => clearInterval(interval);
-  }, [username]);
+  const { nowSpinning, isLoading: loading } = useNowSpinning();
 
   if (loading || !nowSpinning) {
     return null;
