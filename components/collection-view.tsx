@@ -67,8 +67,8 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
         />
       )}
       
-      {/* Stats Cards as Tabs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      {/* Stats Cards as Tabs - Hidden on mobile */}
+      <div className="hidden sm:grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card 
           className={`cursor-pointer transition-all ${activeTab === "all" ? "ring-2 ring-primary" : "hover:shadow-lg"}`}
           onClick={() => setActiveTab("all")}
@@ -141,18 +141,33 @@ export default function CollectionView({ initialRecords, isOwner = true, usernam
       {/* Table with Spin Button */}
       <Card className="overflow-hidden">
         <div className="sticky top-0 bg-background z-20 p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
+          {/* Desktop: Show title */}
+          <h2 className="text-lg font-semibold hidden sm:block">
             {activeTab === "all" && "All Records"}
             {activeTab === "lp" && "LPs"}
             {activeTab === "single" && "Singles"}
             {activeTab === "wishlist" && "Wish List"}
           </h2>
           
+          {/* Mobile: Show select dropdown */}
+          <div className="sm:hidden">
+            <select 
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as TabType)}
+              className="text-lg font-semibold bg-transparent border-none outline-none"
+            >
+              <option value="all">All Records</option>
+              <option value="lp">LPs</option>
+              <option value="single">Singles</option>
+              <option value="wishlist">Wish List</option>
+            </select>
+          </div>
+          
           {activeTab !== "wishlist" && (
             <div className="flex gap-2">
               <Button 
                 onClick={() => setShowSpinModal(true)}
-                className="gap-2"
+                className="gap-2 h-10"
                 disabled={filteredRecords.length === 0}
               >
                 <Shuffle className="w-4 h-4" />

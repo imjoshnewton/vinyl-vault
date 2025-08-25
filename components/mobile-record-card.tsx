@@ -8,7 +8,10 @@ import { Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
 import EditRecordDialog from "@/components/edit-record-dialog";
 import NowSpinningKiosk from "@/components/now-spinning-kiosk";
 import { recordPlayAction } from "@/actions/records.actions";
-import { setNowSpinningAction, clearNowSpinningAction } from "@/actions/now-spinning.actions";
+import {
+  setNowSpinningAction,
+  clearNowSpinningAction,
+} from "@/actions/now-spinning.actions";
 import type { VinylRecord } from "@/server/db";
 
 interface MobileRecordCardProps {
@@ -18,9 +21,14 @@ interface MobileRecordCardProps {
   nowSpinningId?: string | null;
 }
 
-export default function MobileRecordCard({ record, isOwner = true, username, nowSpinningId }: MobileRecordCardProps) {
+export default function MobileRecordCard({
+  record,
+  isOwner = true,
+  username,
+  nowSpinningId,
+}: MobileRecordCardProps) {
   const [showKiosk, setShowKiosk] = useState(false);
-  
+
   const handlePlay = async () => {
     if (!isOwner) return;
     await recordPlayAction(record.id);
@@ -28,7 +36,7 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
 
   const handleToggleNowSpinning = async () => {
     if (!isOwner) return;
-    
+
     if (nowSpinningId === record.id) {
       // Stop spinning
       await clearNowSpinningAction();
@@ -40,11 +48,13 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
 
   return (
     <>
-      <Card className={`w-full ${
-        nowSpinningId === record.id 
-          ? 'bg-stone-100 dark:bg-stone-900/50 border-l-4 border-stone-400 dark:border-stone-600' 
-          : ''
-      }`}>
+      <Card
+        className={`w-full ${
+          nowSpinningId === record.id
+            ? "bg-stone-100 dark:bg-stone-900/50 border-l-4 border-stone-400 dark:border-stone-600"
+            : ""
+        }`}
+      >
         <CardContent className="p-4">
           <div className="flex gap-3">
             {/* Album Art */}
@@ -64,19 +74,25 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
                 </div>
               )}
             </div>
-            
+
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-base leading-tight truncate">{record.artist}</h3>
+                    <h3 className="font-semibold text-base leading-tight truncate">
+                      {record.artist}
+                    </h3>
                     {nowSpinningId === record.id && (
-                      <Disc3 className="w-4 h-4 text-muted-foreground animate-spin flex-shrink-0" 
-                             style={{ animationDuration: '3s' }} />
+                      <Disc3
+                        className="w-4 h-4 text-muted-foreground animate-spin flex-shrink-0"
+                        style={{ animationDuration: "3s" }}
+                      />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{record.title}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {record.title}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 ml-2">
                   <span className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-xs font-medium">
@@ -84,7 +100,7 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
                   </span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {record.genre && (
                   <div>
@@ -109,7 +125,7 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
                   <p className="font-medium">{record.playCount}</p>
                 </div>
               </div>
-              
+
               <div className="flex gap-1 mt-3">
                 <Button
                   size="sm"
@@ -136,12 +152,13 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
                       onClick={handleToggleNowSpinning}
                       className="gap-1 px-2"
                     >
-                      {nowSpinningId === record.id ? 
-                        <Square className="w-3 h-3" /> : 
+                      {nowSpinningId === record.id ? (
+                        <Square className="w-3 h-3" />
+                      ) : (
                         <Volume2 className="w-3 h-3" />
-                      }
+                      )}
                     </Button>
-                    <EditRecordDialog record={record} />
+                    <EditRecordDialog record={record} className="px-2" />
                   </>
                 )}
               </div>
@@ -149,7 +166,7 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Now Spinning Modal */}
       {showKiosk && (
         <NowSpinningKiosk
@@ -166,3 +183,4 @@ export default function MobileRecordCard({ record, isOwner = true, username, now
     </>
   );
 }
+

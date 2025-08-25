@@ -93,7 +93,7 @@ export default function CollectionToolsDropdown({ records, username }: Collectio
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" className="gap-2 h-10">
             <MoreVertical className="w-4 h-4" />
             <span className="hidden sm:inline">Tools</span>
           </Button>

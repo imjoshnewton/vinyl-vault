@@ -29,7 +29,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Edit, Trash2 } from "lucide-react";
-import { updateRecordAction, deleteRecordAction } from "@/actions/records.actions";
+import {
+  updateRecordAction,
+  deleteRecordAction,
+} from "@/actions/records.actions";
 import type { VinylRecord } from "@/server/db";
 
 const recordSchema = z.object({
@@ -42,13 +45,13 @@ const recordSchema = z.object({
   type: z.enum(["LP", "Single", "EP"]),
   condition: z.enum([
     "Mint",
-    "Near Mint", 
+    "Near Mint",
     "Very Good Plus",
     "Very Good",
     "Good Plus",
     "Good",
     "Fair",
-    "Poor"
+    "Poor",
   ]),
   purchasePrice: z.string().optional(),
   notes: z.string().optional(),
@@ -61,7 +64,10 @@ interface EditRecordDialogProps {
   className?: string;
 }
 
-export default function EditRecordDialog({ record, className }: EditRecordDialogProps) {
+export default function EditRecordDialog({
+  record,
+  className,
+}: EditRecordDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -78,7 +84,9 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
       genre: record.genre || "",
       type: record.type,
       condition: record.condition || "Very Good",
-      purchasePrice: record.purchasePrice ? (record.purchasePrice / 100).toFixed(2) : "",
+      purchasePrice: record.purchasePrice
+        ? (record.purchasePrice / 100).toFixed(2)
+        : "",
       notes: record.notes || "",
     },
   });
@@ -94,7 +102,9 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
       genre: record.genre || "",
       type: record.type,
       condition: record.condition || "Very Good",
-      purchasePrice: record.purchasePrice ? (record.purchasePrice / 100).toFixed(2) : "",
+      purchasePrice: record.purchasePrice
+        ? (record.purchasePrice / 100).toFixed(2)
+        : "",
       notes: record.notes || "",
     });
   }, [record, form]);
@@ -104,10 +114,12 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
     try {
       const updateData = {
         ...data,
-        purchasePrice: data.purchasePrice ? Math.round(parseFloat(data.purchasePrice) * 100) : null,
+        purchasePrice: data.purchasePrice
+          ? Math.round(parseFloat(data.purchasePrice) * 100)
+          : null,
         releaseYear: data.releaseYear ? parseInt(data.releaseYear) : null,
       };
-      
+
       await updateRecordAction(record.id, updateData);
       setOpen(false);
     } catch (error) {
@@ -133,16 +145,19 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className={`gap-1 ${className || ""}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`gap-1 ${className || ""}`}
+        >
           <Edit className="w-3 h-3" />
-          Edit
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Record</DialogTitle>
         </DialogHeader>
-        
+
         {!showDeleteConfirm ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -160,7 +175,7 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="title"
@@ -183,7 +198,10 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />
@@ -199,14 +217,17 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="condition"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Condition</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select condition" />
@@ -215,7 +236,9 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                         <SelectContent>
                           <SelectItem value="Mint">Mint</SelectItem>
                           <SelectItem value="Near Mint">Near Mint</SelectItem>
-                          <SelectItem value="Very Good Plus">Very Good Plus</SelectItem>
+                          <SelectItem value="Very Good Plus">
+                            Very Good Plus
+                          </SelectItem>
                           <SelectItem value="Very Good">Very Good</SelectItem>
                           <SelectItem value="Good Plus">Good Plus</SelectItem>
                           <SelectItem value="Good">Good</SelectItem>
@@ -243,7 +266,7 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="catalogNumber"
@@ -267,17 +290,13 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                     <FormItem>
                       <FormLabel>Release Year</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="YYYY" 
-                          {...field}
-                        />
+                        <Input type="number" placeholder="YYYY" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="genre"
@@ -300,10 +319,10 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
                   <FormItem>
                     <FormLabel>Purchase Price ($)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         step="0.01"
-                        placeholder="0.00" 
+                        placeholder="0.00"
                         {...field}
                       />
                     </FormControl>
@@ -357,13 +376,15 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
         ) : (
           <div className="space-y-4">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-destructive mb-2">Delete Record</h3>
+              <h3 className="text-lg font-semibold text-destructive mb-2">
+                Delete Record
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Are you sure you want to delete &quot;{record.title}&quot; by {record.artist}?
-                This action cannot be undone.
+                Are you sure you want to delete &quot;{record.title}&quot; by{" "}
+                {record.artist}? This action cannot be undone.
               </p>
             </div>
-            
+
             <div className="flex gap-3">
               <Button
                 variant="destructive"
@@ -387,3 +408,4 @@ export default function EditRecordDialog({ record, className }: EditRecordDialog
     </Dialog>
   );
 }
+
