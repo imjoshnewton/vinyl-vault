@@ -148,7 +148,7 @@ export default function EditRecordDialog({
         <Button
           variant="ghost"
           size="sm"
-          className={`gap-1 ${className || ""}`}
+          className={`gap-1 p-1 ${className || ""}`}
         >
           <Edit className="w-3 h-3" />
         </Button>
