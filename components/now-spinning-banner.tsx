@@ -24,7 +24,7 @@ export default function NowSpinningBanner({
 }: NowSpinningBannerProps) {
   const nowSpinningContext = useOptionalNowSpinning();
   
-  // If no context is available, don't render anything
+  // If no context is available, don't render the banner
   if (!nowSpinningContext) {
     return null;
   }

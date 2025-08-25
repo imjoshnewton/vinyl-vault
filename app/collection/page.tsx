@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { authService } from "@/services/auth.service";
 import { getPublicCollectionAction } from "@/actions/public.actions";
+import { getNowSpinningAction } from "@/actions/now-spinning.actions";
 import CollectionView from "@/components/collection-view";
 import AddRecordDialog from "@/components/add-record-dialog";
 import ShareCollectionDialog from "@/components/share-collection-dialog";
@@ -10,6 +11,7 @@ import DiscogsSearchDialog from "@/components/discogs-search-dialog";
 import Footer from "@/components/footer";
 import BackToTop from "@/components/back-to-top";
 import AudioRecognitionWrapper from "@/components/audio-recognition-wrapper";
+import { NowSpinningProvider } from "@/providers/now-spinning-provider";
 
 export default async function CollectionPage() {
   // Get current user from Clerk
@@ -40,6 +42,10 @@ export default async function CollectionPage() {
   }
   
   const { records } = collectionData;
+  
+  // Get initial now spinning data (no polling needed on collection page)
+  const nowSpinningResult = await getNowSpinningAction(user.username);
+  const initialNowSpinning = nowSpinningResult.success ? nowSpinningResult.nowSpinning : null;
 
   // Get first name from Clerk user (more reliable) or fall back to database user name
   const userFirstName = (clerkUser.firstName && clerkUser.firstName.trim()) || 
@@ -47,29 +53,35 @@ export default async function CollectionPage() {
                         null;
   
   return (
-    <div className="min-h-screen bg-stone-100 flex flex-col">
-      <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">
-            {userFirstName ? `${userFirstName}'s` : "My"} Vinyl Collection
-          </h1>
-          <div className="flex justify-center gap-3 mb-6">
-            <AudioRecognitionWrapper userRecords={records} />
-            <DiscogsSearchDialog />
-            <DiscogsSyncDialog />
-            <ShareCollectionDialog user={user} />
-            <AddRecordDialog />
+    <NowSpinningProvider 
+      username={user.username}
+      enablePolling={false} // No polling on collection page - only manual updates
+      initialData={initialNowSpinning}
+    >
+      <div className="min-h-screen bg-stone-100 flex flex-col">
+        <main className="container mx-auto px-4 py-8 flex-grow">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold mb-4">
+              {userFirstName ? `${userFirstName}'s` : "My"} Vinyl Collection
+            </h1>
+            <div className="flex justify-center gap-3 mb-6">
+              <AudioRecognitionWrapper userRecords={records} />
+              <DiscogsSearchDialog />
+              <DiscogsSyncDialog />
+              <ShareCollectionDialog user={user} />
+              <AddRecordDialog />
+            </div>
           </div>
-        </div>
-        
-        <CollectionView 
-          initialRecords={records} 
-          username={user.username || ""} 
-          ownerName={userFirstName || user.username || "My"}
-        />
-      </main>
-      <Footer />
-      <BackToTop />
-    </div>
+          
+          <CollectionView 
+            initialRecords={records} 
+            username={user.username || ""} 
+            ownerName={userFirstName || user.username || "My"}
+          />
+        </main>
+        <Footer />
+        <BackToTop />
+      </div>
+    </NowSpinningProvider>
   );
 }
