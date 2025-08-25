@@ -66,8 +66,9 @@ export default function KioskDisplay({ username }: KioskDisplayProps) {
 
     fetchData();
     
-    // Auto-refresh every 15 seconds for live updates
-    const interval = setInterval(fetchData, 15000);
+    // Auto-refresh every 30 seconds for kiosk displays
+    // This reduces database load while still keeping it relatively fresh
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [username, user]);
 

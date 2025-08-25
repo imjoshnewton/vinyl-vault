@@ -45,8 +45,9 @@ export default function NowSpinningBanner({
 
     fetchNowSpinning();
     
-    // Refresh every 15 seconds for more responsive updates
-    const interval = setInterval(fetchNowSpinning, 15000);
+    // Refresh every 60 seconds instead of 15 to reduce database load
+    // Most users won't change what's spinning that frequently
+    const interval = setInterval(fetchNowSpinning, 60000);
     return () => clearInterval(interval);
   }, [username]);
 

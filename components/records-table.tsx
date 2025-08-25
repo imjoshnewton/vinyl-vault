@@ -50,9 +50,8 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   useEffect(() => {
     fetchNowSpinning();
     
-    // Refresh every 15 seconds to match banner refresh rate
-    const interval = setInterval(fetchNowSpinning, 15000);
-    return () => clearInterval(interval);
+    // Only refresh when component mounts, not periodically
+    // The now spinning status will update when user interactions occur
   }, [fetchNowSpinning]);
   
   const handleSort = (field: SortField) => {
