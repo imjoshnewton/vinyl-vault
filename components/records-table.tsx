@@ -57,10 +57,26 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
     sortOrder
   );
   
-  // Get available first letters for the alphabet navigator
+  // Get available first letters for the alphabet navigator based on sort field
   const availableLetters = new Set<string>();
   sortedRecords.forEach(record => {
-    const firstChar = record.artist[0]?.toUpperCase();
+    let firstChar: string | undefined;
+    
+    // Get first character based on current sort field
+    switch(sortField) {
+      case "artist":
+        firstChar = record.artist[0]?.toUpperCase();
+        break;
+      case "title":
+        firstChar = record.title[0]?.toUpperCase();
+        break;
+      case "genre":
+        firstChar = record.genre?.[0]?.toUpperCase();
+        break;
+      default:
+        firstChar = undefined;
+    }
+    
     if (firstChar) {
       if (/[A-Z]/.test(firstChar)) {
         availableLetters.add(firstChar);
@@ -74,9 +90,24 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   const handleLetterClick = (letter: string) => {
     if (!containerRef.current) return;
     
-    // Find first record that starts with this letter
+    // Find first record that starts with this letter based on sort field
     const targetRecord = sortedRecords.find(record => {
-      const firstChar = record.artist[0]?.toUpperCase();
+      let firstChar: string | undefined;
+      
+      switch(sortField) {
+        case "artist":
+          firstChar = record.artist[0]?.toUpperCase();
+          break;
+        case "title":
+          firstChar = record.title[0]?.toUpperCase();
+          break;
+        case "genre":
+          firstChar = record.genre?.[0]?.toUpperCase();
+          break;
+        default:
+          return false;
+      }
+      
       if (letter === '#') {
         return firstChar && !/[A-Z]/.test(firstChar);
       }
@@ -97,13 +128,13 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
     const handleScroll = () => {
       if (!containerRef.current) return;
       
-      const records = containerRef.current.querySelectorAll('[data-artist-letter]');
+      const records = containerRef.current.querySelectorAll('[data-letter-section]');
       let currentLetter = null;
       
       records.forEach((element) => {
         const rect = element.getBoundingClientRect();
         if (rect.top <= 150 && rect.bottom >= 150) {
-          currentLetter = element.getAttribute('data-artist-letter');
+          currentLetter = element.getAttribute('data-letter-section');
         }
       });
       
@@ -192,14 +223,30 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
         {/* Mobile cards */}
         <div className="space-y-3 p-4">
           {sortedRecords.map((record) => {
-            const firstChar = record.artist[0]?.toUpperCase();
+            let firstChar: string | undefined;
+            
+            // Get first character based on current sort field
+            switch(sortField) {
+              case "artist":
+                firstChar = record.artist[0]?.toUpperCase();
+                break;
+              case "title":
+                firstChar = record.title[0]?.toUpperCase();
+                break;
+              case "genre":
+                firstChar = record.genre?.[0]?.toUpperCase();
+                break;
+              default:
+                firstChar = undefined;
+            }
+            
             const letterSection = firstChar && /[A-Z]/.test(firstChar) ? firstChar : '#';
             
             return (
               <div 
                 key={record.id} 
                 id={`record-${record.id}`}
-                data-artist-letter={letterSection}
+                data-letter-section={letterSection}
               >
                 <MobileRecordCard record={record} isOwner={isOwner} username={username} nowSpinningId={nowSpinningId} />
               </div>
@@ -207,8 +254,8 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
           })}
         </div>
         
-        {/* Alphabet Navigator - only show when sorting by artist */}
-        {sortField === "artist" && (
+        {/* Alphabet Navigator - show for alphabetical sorts */}
+        {(sortField === "artist" || sortField === "title" || sortField === "genre") && (
           <AlphabetNavigator 
             onLetterClick={handleLetterClick}
             availableLetters={availableLetters}
