@@ -8,13 +8,15 @@ interface AlphabetNavigatorProps {
   availableLetters?: Set<string>;
   className?: string;
   currentSection?: string | null;
+  reverseOrder?: boolean;
 }
 
 export default function AlphabetNavigator({ 
   onLetterClick, 
   availableLetters,
   className,
-  currentSection 
+  currentSection,
+  reverseOrder = false
 }: AlphabetNavigatorProps) {
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [isTouching, setIsTouching] = useState(false);
@@ -25,8 +27,13 @@ export default function AlphabetNavigator({
     String.fromCharCode(65 + i)
   );
   
-  // Add # for numbers/special characters
-  const letters = ['#', ...alphabet];
+  // Add # for numbers/special characters and reverse if needed
+  let letters = ['#', ...alphabet];
+  
+  // Reverse the order for descending sort
+  if (reverseOrder) {
+    letters = [...alphabet.reverse(), '#'];
+  }
   
   const handleTouch = (letter: string) => {
     if (!availableLetters || availableLetters.has(letter)) {

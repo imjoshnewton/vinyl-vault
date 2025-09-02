@@ -260,6 +260,7 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
             onLetterClick={handleLetterClick}
             availableLetters={availableLetters}
             currentSection={currentSection}
+            reverseOrder={sortOrder === "desc"}
           />
         )}
       </div>
