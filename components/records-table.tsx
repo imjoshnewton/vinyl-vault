@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import type { VinylRecord } from "@/server/db";
 import { ChevronUp, ChevronDown, Play, Disc3, Maximize2, Volume2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sortRecords } from "@/lib/sort-utils";
 import { useOptionalNowSpinning } from "@/providers/now-spinning-provider";
+import AlphabetNavigator from "@/components/alphabet-navigator";
 import {
   Table,
   TableBody,
@@ -33,6 +34,8 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   const [sortField, setSortField] = useState<SortField>("artist");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [kioskRecord, setKioskRecord] = useState<VinylRecord | null>(null);
+  const [currentSection, setCurrentSection] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Use the optional now spinning context if available
   const nowSpinningContext = useOptionalNowSpinning();
@@ -53,6 +56,67 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
     sortField === "genre" ? "artist" : sortField, // Map genre to artist since genre isn't in the sort function
     sortOrder
   );
+  
+  // Get available first letters for the alphabet navigator
+  const availableLetters = new Set<string>();
+  sortedRecords.forEach(record => {
+    const firstChar = record.artist[0]?.toUpperCase();
+    if (firstChar) {
+      if (/[A-Z]/.test(firstChar)) {
+        availableLetters.add(firstChar);
+      } else {
+        availableLetters.add('#'); // For numbers and special characters
+      }
+    }
+  });
+  
+  // Handle alphabet navigation
+  const handleLetterClick = (letter: string) => {
+    if (!containerRef.current) return;
+    
+    // Find first record that starts with this letter
+    const targetRecord = sortedRecords.find(record => {
+      const firstChar = record.artist[0]?.toUpperCase();
+      if (letter === '#') {
+        return firstChar && !/[A-Z]/.test(firstChar);
+      }
+      return firstChar === letter;
+    });
+    
+    if (targetRecord) {
+      // Find the element and scroll to it
+      const element = document.getElementById(`record-${targetRecord.id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+  
+  // Track which letter section is currently visible
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      
+      const records = containerRef.current.querySelectorAll('[data-artist-letter]');
+      let currentLetter = null;
+      
+      records.forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= 150 && rect.bottom >= 150) {
+          currentLetter = element.getAttribute('data-artist-letter');
+        }
+      });
+      
+      if (currentLetter !== currentSection) {
+        setCurrentSection(currentLetter);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial position
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentSection]);
   
   const handlePlay = async (record: VinylRecord) => {
     await recordPlayAction(record.id);
@@ -82,7 +146,7 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
   };
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* Mobile view - Cards */}
       <div className="sm:hidden">
         {/* Mobile sorting controls */}
@@ -127,10 +191,30 @@ export default function RecordsTable({ records, isOwner = true, username }: Reco
         
         {/* Mobile cards */}
         <div className="space-y-3 p-4">
-          {sortedRecords.map((record) => (
-            <MobileRecordCard key={record.id} record={record} isOwner={isOwner} username={username} nowSpinningId={nowSpinningId} />
-          ))}
+          {sortedRecords.map((record) => {
+            const firstChar = record.artist[0]?.toUpperCase();
+            const letterSection = firstChar && /[A-Z]/.test(firstChar) ? firstChar : '#';
+            
+            return (
+              <div 
+                key={record.id} 
+                id={`record-${record.id}`}
+                data-artist-letter={letterSection}
+              >
+                <MobileRecordCard record={record} isOwner={isOwner} username={username} nowSpinningId={nowSpinningId} />
+              </div>
+            );
+          })}
         </div>
+        
+        {/* Alphabet Navigator - only show when sorting by artist */}
+        {sortField === "artist" && (
+          <AlphabetNavigator 
+            onLetterClick={handleLetterClick}
+            availableLetters={availableLetters}
+            currentSection={currentSection}
+          />
+        )}
       </div>
       
       {/* Desktop view - Table */}
